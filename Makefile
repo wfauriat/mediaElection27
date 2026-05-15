@@ -1,4 +1,4 @@
-.PHONY: help venv install db-up db-down db-logs migrate seed ingest-once api dev test lint typecheck format clean
+.PHONY: help venv install db-up db-down db-logs psql migrate seed ingest-once api dev test lint typecheck format clean
 
 PY := .venv/bin/python
 PIP := .venv/bin/pip
@@ -28,6 +28,9 @@ db-down:  ## Stop Postgres
 
 db-logs:  ## Tail Postgres logs
 	docker compose logs -f postgres
+
+psql:  ## Open an interactive psql shell against the running Postgres
+	docker compose exec postgres psql -U media27 -d media27
 
 migrate:  ## Apply alembic migrations
 	$(ALEMBIC) upgrade head
