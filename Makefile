@@ -1,4 +1,4 @@
-.PHONY: help venv install db-up db-down db-logs psql migrate seed ingest-once extract extract-all api dev test lint typecheck format clean
+.PHONY: help venv install db-up db-down db-logs psql migrate seed ingest-once extract extract-all api dev test lint typecheck format clean frontend-install frontend-dev frontend-build frontend-typecheck
 
 PY := .venv/bin/python
 PIP := .venv/bin/pip
@@ -49,6 +49,18 @@ extract-all:  ## Reprocess every article (useful after editing aliases)
 
 api:  ## Run FastAPI locally
 	$(PY) -m uvicorn app.api.main:app --reload --port 8000
+
+frontend-install:  ## Install frontend npm deps
+	cd frontend && npm install
+
+frontend-dev:  ## Run Vite dev server (http://localhost:5173)
+	cd frontend && npm run dev
+
+frontend-build:  ## Build frontend for production into frontend/dist
+	cd frontend && npm run build
+
+frontend-typecheck:  ## Type-check the frontend with tsc --noEmit
+	cd frontend && npm run typecheck
 
 dev: db-up migrate seed  ## Bring up DB, migrate, seed (full local bootstrap)
 

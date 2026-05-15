@@ -33,7 +33,15 @@ make db-up       # starts Postgres in docker
 make migrate     # applies alembic migrations
 make seed        # loads candidates.yaml + sources.yaml
 make ingest-once # fetches all RSS feeds once
+make extract     # runs keyword extractor over articles
 make api         # starts FastAPI on http://localhost:8000
+```
+
+For the dashboard (in another terminal, after `make api` is up):
+
+```bash
+make frontend-install    # one-time: installs npm deps into frontend/node_modules
+make frontend-dev        # starts Vite on http://localhost:5173
 ```
 
 `make help` lists all targets.
