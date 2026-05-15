@@ -38,6 +38,13 @@ make api         # starts FastAPI on http://localhost:8000
 
 `make help` lists all targets.
 
+
+## Note
+Whenever you git pull this repo on a new machine, setup is make install && make db-up && 
+make migrate && make seed && crontab scripts/media27.cron. That's the whole runbook.
+
 ## Status
 
 Pre-MVP — Week 1 of the timeline in `PLAN-v1.md`. Public deploy targeted for 2026-06-19.
+
+
