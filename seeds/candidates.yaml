@@ -153,3 +153,17 @@ candidates:
       - { alias: "Éric Zemmour", match_kind: exact }
       - { alias: "Eric Zemmour", match_kind: exact }
       - { alias: "Zemmour", match_kind: wholeword }
+
+  - id: 14
+    slug: macron
+    display_name: Emmanuel Macron
+    party: Renaissance
+    lean: centre
+    eligible: false
+    notes: >
+      Sitting president since 2017, term-limited (Constitution art. 6 — no
+      more than two consecutive terms). Cannot run in 2027 but dominates
+      campaign-period coverage; tracked as a non-candidate reference figure.
+    aliases:
+      - { alias: "Emmanuel Macron", match_kind: exact }
+      - { alias: "Macron", match_kind: wholeword }

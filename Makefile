@@ -1,4 +1,4 @@
-.PHONY: help venv install db-up db-down db-logs psql migrate seed ingest-once api dev test lint typecheck format clean
+.PHONY: help venv install db-up db-down db-logs psql migrate seed ingest-once extract extract-all api dev test lint typecheck format clean
 
 PY := .venv/bin/python
 PIP := .venv/bin/pip
@@ -40,6 +40,12 @@ seed:  ## Seed candidates and sources from YAML
 
 ingest-once:  ## Run one ingest pass against all configured RSS feeds
 	$(PY) -m app.ingest.run --once
+
+extract:  ## Run keyword extractor over articles that don't yet have mentions
+	$(PY) -m app.extract.run
+
+extract-all:  ## Reprocess every article (useful after editing aliases)
+	$(PY) -m app.extract.run --all
 
 api:  ## Run FastAPI locally
 	$(PY) -m uvicorn app.api.main:app --reload --port 8000

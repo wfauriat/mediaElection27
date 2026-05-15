@@ -331,3 +331,22 @@ per-mention rows + `requires_context`) is more rigorous than naive title-grep.
 
 Try modifying these — change the candidate, change the time window, swap `outlet`
 for `lean`. SQL gets fluent through tinkering.
+
+
+
+
+
+-- For each outlet, the % of its candidate-mentioning articles that name each candidate
+```sql
+SELECT s.outlet, c.display_name,
+        COUNT(DISTINCT m.article_id) AS n_articles,
+        ROUND(100.0 * COUNT(DISTINCT m.article_id) / NULLIF(SUM(COUNT(DISTINCT
+m.article_id))
+            OVER (PARTITION BY s.outlet), 0), 1) AS pct_share
+FROM mentions m
+JOIN articles a ON a.id = m.article_id
+JOIN sources s ON s.id = a.source_id
+JOIN candidates c ON c.id = m.candidate_id
+GROUP BY s.outlet, c.display_name
+ORDER BY s.outlet, n_articles DESC;
+```
