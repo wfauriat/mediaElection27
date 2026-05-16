@@ -33,6 +33,10 @@ dev = [
     "types-python-dateutil",
     "types-pyyaml",
 ]
+infra = [
+    "aws-cdk-lib>=2.170",
+    "constructs>=10.4",
+]
 
 [tool.ruff]
 line-length = 100
@@ -48,7 +52,7 @@ strict = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["feedparser.*"]
+module = ["feedparser.*", "boto3", "botocore.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
