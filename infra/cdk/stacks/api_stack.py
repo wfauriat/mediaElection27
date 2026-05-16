@@ -21,7 +21,25 @@ from aws_cdk import aws_rds as rds
 from aws_cdk import aws_secretsmanager as secretsmanager
 from constructs import Construct
 
-APP_DIR = Path(__file__).resolve().parent.parent.parent.parent / "app"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+LAMBDA_EXCLUDES = [
+    "frontend",
+    "infra",
+    "tests",
+    ".venv",
+    "raw",
+    ".git",
+    ".github",
+    "*.egg-info",
+    "__pycache__",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    "cdk.out",
+    "*.sql",
+    "*.dump",
+    "backup.sql",
+]
 
 
 class ApiStack(Stack):
@@ -42,8 +60,8 @@ class ApiStack(Stack):
             self,
             "ApiFn",
             runtime=lambda_.Runtime.PYTHON_3_12,
-            code=lambda_.Code.from_asset(str(APP_DIR)),
-            handler="api.mangum_handler.handler",
+            code=lambda_.Code.from_asset(str(PROJECT_ROOT), exclude=LAMBDA_EXCLUDES),
+            handler="app.api.mangum_handler.handler",
             memory_size=512,
             timeout=Duration.seconds(30),
             environment={

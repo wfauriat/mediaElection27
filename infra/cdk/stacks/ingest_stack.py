@@ -26,9 +26,27 @@ from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_secretsmanager as secretsmanager
 from constructs import Construct
 
-# Path to the project's `app/` directory, resolved relative to this file
-# so it doesn't depend on the cwd from which `cdk` is invoked.
-APP_DIR = Path(__file__).resolve().parent.parent.parent.parent / "app"
+# Lambda asset root = project root, so both `app/` and `seeds/` are bundled.
+# The ingest Lambda needs seeds/sources.yaml at runtime (no DB access).
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+LAMBDA_EXCLUDES = [
+    "frontend",
+    "infra",
+    "tests",
+    ".venv",
+    "raw",
+    ".git",
+    ".github",
+    "*.egg-info",
+    "__pycache__",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    "cdk.out",
+    "*.sql",
+    "*.dump",
+    "backup.sql",
+]
 
 
 class IngestStack(Stack):
@@ -72,7 +90,9 @@ class IngestStack(Stack):
         )
 
         common_runtime = lambda_.Runtime.PYTHON_3_12
-        common_code = lambda_.Code.from_asset(str(APP_DIR))
+        common_code = lambda_.Code.from_asset(
+            str(PROJECT_ROOT), exclude=LAMBDA_EXCLUDES
+        )
 
         # === Ingest Lambda: OUTSIDE the VPC (needs internet for RSS feeds) ===
         self.ingest_fn = lambda_.Function(
@@ -80,7 +100,7 @@ class IngestStack(Stack):
             "IngestFn",
             runtime=common_runtime,
             code=common_code,
-            handler="ingest.lambda_handler.handler",
+            handler="app.ingest.lambda_handler.handler",
             memory_size=512,
             timeout=Duration.minutes(5),
             environment={
@@ -117,7 +137,7 @@ class IngestStack(Stack):
             "LoaderFn",
             runtime=common_runtime,
             code=common_code,
-            handler="ingest.loader_handler.handler",
+            handler="app.ingest.loader_handler.handler",
             memory_size=512,
             timeout=Duration.minutes(5),
             environment={
