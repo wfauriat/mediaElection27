@@ -35,6 +35,36 @@ export const t = {
     activeSources: "Médias actifs",
     period: "Période sélectionnée",
   },
+  share: {
+    title: "Part de voix par jour",
+    subtitle: "Pourcentage de mentions par candidat, ramené à 100 % chaque jour",
+    tooltipTotal: (n: number) => `${n.toLocaleString("fr-FR")} mentions au total`,
+  },
+  sources: {
+    title: "Drilldown par média",
+    subtitle: "Mentions par candidat à l'intérieur d'un seul média",
+    filterTitle: "Média",
+    chartTitle: (outlet: string) => `Mentions chez ${outlet}`,
+    pickPrompt: "Sélectionnez un média dans le panneau de gauche.",
+    allLabel: "Tous les médias",
+  },
+  articles: {
+    title: "Articles",
+    subtitle: "Articles ingérés correspondant aux filtres",
+    col: {
+      published: "Date",
+      title: "Titre",
+      outlet: "Média",
+      candidates: "Candidats",
+    },
+    count: (total: number) => `${total.toLocaleString("fr-FR")} articles`,
+    pageOf: (from: number, to: number, total: number) =>
+      `${from.toLocaleString("fr-FR")}–${to.toLocaleString("fr-FR")} sur ${total.toLocaleString("fr-FR")}`,
+    prev: "Précédent",
+    next: "Suivant",
+    open: "Ouvrir l'article",
+    empty: "Aucun article ne correspond aux filtres. Élargissez la fenêtre ou changez de candidat/média.",
+  },
   leaderboard: {
     title: "Classement des candidats",
     subtitle: "Trié par nombre de mentions sur la période sélectionnée",

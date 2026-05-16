@@ -46,6 +46,29 @@ export function writeCandidateSelection(
   }
 }
 
+export function parseSourceId(value: string | null): number | null {
+  if (!value) return null;
+  const n = Number.parseInt(value, 10);
+  return Number.isFinite(n) ? n : null;
+}
+
+export function writeSourceId(params: URLSearchParams, id: number | null): void {
+  if (id === null) params.delete("source");
+  else params.set("source", String(id));
+}
+
+export function parseOffset(value: string | null): number {
+  if (!value) return 0;
+  const n = Number.parseInt(value, 10);
+  if (!Number.isFinite(n) || n < 0) return 0;
+  return n;
+}
+
+export function writeOffset(params: URLSearchParams, offset: number): void {
+  if (offset <= 0) params.delete("offset");
+  else params.set("offset", String(offset));
+}
+
 export function parseISODate(value: string | null): string | null {
   if (!value) return null;
   // YYYY-MM-DD strict

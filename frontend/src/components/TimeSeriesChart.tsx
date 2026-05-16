@@ -13,6 +13,8 @@ interface TimeSeriesChartProps {
   candidates: Candidate[];
   /** null = no filter (show every candidate); [] = explicit empty (show none); list = those only. */
   selectedCandidateIds: CandidateSelection;
+  /** Optional override for the chart heading. Defaults to the generic "Mentions par jour". */
+  title?: string;
 }
 
 /** Roll up (day, candidate, source) buckets into (day, candidate) lines —
@@ -36,7 +38,12 @@ function rollupByCandidate(
   return byCandidate;
 }
 
-export function TimeSeriesChart({ points, candidates, selectedCandidateIds }: TimeSeriesChartProps) {
+export function TimeSeriesChart({
+  points,
+  candidates,
+  selectedCandidateIds,
+  title,
+}: TimeSeriesChartProps) {
   const rolled = useMemo(
     () => rollupByCandidate(points, selectedCandidateIds),
     [points, selectedCandidateIds],
@@ -105,7 +112,7 @@ export function TimeSeriesChart({ points, candidates, selectedCandidateIds }: Ti
 
   return (
     <div className="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
-      <h2 className="mb-2 text-sm font-semibold text-slate-700">{t.chart.title}</h2>
+      <h2 className="mb-2 text-sm font-semibold text-slate-700">{title ?? t.chart.title}</h2>
       <ReactECharts option={option} style={{ height: 420 }} notMerge lazyUpdate />
     </div>
   );

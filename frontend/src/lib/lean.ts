@@ -28,3 +28,12 @@ export function compareByLean<T extends { lean: string | null; display_name: str
   if (diff !== 0) return diff;
   return a.display_name.localeCompare(b.display_name, "fr");
 }
+
+export function compareSourcesByLean<T extends { lean: string | null; outlet: string }>(
+  a: T,
+  b: T,
+): number {
+  const diff = rank(a.lean) - rank(b.lean);
+  if (diff !== 0) return diff;
+  return a.outlet.localeCompare(b.outlet, "fr");
+}
