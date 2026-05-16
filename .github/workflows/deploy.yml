@@ -1,9 +1,14 @@
 name: deploy
 
-# Triggers: pushes to main, plus manual dispatch from the Actions tab.
+# Triggers: pushes to main (excluding docs-only changes), plus manual
+# dispatch from the Actions tab.
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "LICENSE"
+      - ".gitignore"
   workflow_dispatch:
 
 # One-time AWS setup before this workflow can run:
