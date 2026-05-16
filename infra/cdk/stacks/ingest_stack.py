@@ -75,7 +75,7 @@ class IngestStack(Stack):
         common_code = lambda_.Code.from_asset(str(APP_DIR))
 
         # === Ingest Lambda: OUTSIDE the VPC (needs internet for RSS feeds) ===
-        ingest_fn = lambda_.Function(
+        self.ingest_fn = lambda_.Function(
             self,
             "IngestFn",
             runtime=common_runtime,
@@ -94,7 +94,7 @@ class IngestStack(Stack):
             # Deliberately NO vpc=... — keeps the function in the AWS-managed
             # network where it gets free internet egress (no NAT needed).
         )
-        self.raw_bucket.grant_write(ingest_fn)
+        self.raw_bucket.grant_write(self.ingest_fn)
 
         # === EventBridge cron: fire ingest 4×/day (every 6h, on the hour UTC) ===
         cron_rule = events.Rule(
@@ -109,10 +109,10 @@ class IngestStack(Stack):
             ),
             description="Trigger media27 RSS ingest 4x/day",
         )
-        cron_rule.add_target(targets.LambdaFunction(ingest_fn))
+        cron_rule.add_target(targets.LambdaFunction(self.ingest_fn))
 
         # === Loader Lambda: IN the VPC (reaches RDS, no internet) ===
-        loader_fn = lambda_.Function(
+        self.loader_fn = lambda_.Function(
             self,
             "LoaderFn",
             runtime=common_runtime,
@@ -133,10 +133,10 @@ class IngestStack(Stack):
             ),
             security_groups=[lambda_vpc_sg],
         )
-        self.raw_bucket.grant_read(loader_fn)
-        db_secret.grant_read(loader_fn)
+        self.raw_bucket.grant_read(self.loader_fn)
+        db_secret.grant_read(self.loader_fn)
 
-        loader_fn.add_event_source(
+        self.loader_fn.add_event_source(
             lambda_events.S3EventSource(
                 self.raw_bucket,
                 events=[s3.EventType.OBJECT_CREATED],

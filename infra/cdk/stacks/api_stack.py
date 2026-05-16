@@ -38,7 +38,7 @@ class ApiStack(Stack):
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        api_fn = lambda_.Function(
+        self.api_fn = lambda_.Function(
             self,
             "ApiFn",
             runtime=lambda_.Runtime.PYTHON_3_12,
@@ -59,7 +59,7 @@ class ApiStack(Stack):
             ),
             security_groups=[lambda_vpc_sg],
         )
-        db_secret.grant_read(api_fn)
+        db_secret.grant_read(self.api_fn)
 
         self.http_api = apigwv2.HttpApi(
             self,
@@ -78,7 +78,7 @@ class ApiStack(Stack):
 
         integration = apigwv2_integrations.HttpLambdaIntegration(
             "ApiIntegration",
-            handler=api_fn,
+            handler=self.api_fn,
         )
 
         # One catch-all route forwards every path + method to the Lambda;

@@ -16,6 +16,7 @@ from stacks.data_stack import DataStack
 from stacks.frontend_stack import FrontendStack
 from stacks.ingest_stack import IngestStack
 from stacks.network_stack import NetworkStack
+from stacks.observability_stack import ObservabilityStack
 
 REGION = "eu-west-3"
 
@@ -60,6 +61,16 @@ api = ApiStack(
 api.add_dependency(data)
 
 frontend = FrontendStack(app, "Media27Frontend", env=env)
+
+observability = ObservabilityStack(
+    app,
+    "Media27Observability",
+    lambdas=[ingest.ingest_fn, ingest.loader_fn, api.api_fn],
+    db=data.db,
+    env=env,
+)
+observability.add_dependency(ingest)
+observability.add_dependency(api)
 
 Tags.of(app).add("project", "media27")
 
