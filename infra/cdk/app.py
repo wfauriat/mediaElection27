@@ -13,6 +13,7 @@ from aws_cdk import App, Environment, Tags
 
 from stacks.api_stack import ApiStack
 from stacks.data_stack import DataStack
+from stacks.frontend_stack import FrontendStack
 from stacks.ingest_stack import IngestStack
 from stacks.network_stack import NetworkStack
 
@@ -57,6 +58,8 @@ api = ApiStack(
     env=env,
 )
 api.add_dependency(data)
+
+frontend = FrontendStack(app, "Media27Frontend", env=env)
 
 Tags.of(app).add("project", "media27")
 
