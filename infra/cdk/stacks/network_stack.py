@@ -49,7 +49,7 @@ class NetworkStack(Stack):
             self,
             "RdsSg",
             vpc=self.vpc,
-            description="Postgres — accepts traffic only from in-VPC Lambdas",
+            description="Postgres - accepts traffic only from in-VPC Lambdas",
             allow_all_outbound=False,
         )
 
