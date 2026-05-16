@@ -52,7 +52,7 @@ strict = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["feedparser.*"]
+module = ["feedparser.*", "boto3", "botocore.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

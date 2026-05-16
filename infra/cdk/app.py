@@ -10,7 +10,6 @@ from __future__ import annotations
 import os
 
 from aws_cdk import App, Environment, Tags
-
 from stacks.api_stack import ApiStack
 from stacks.data_stack import DataStack
 from stacks.frontend_stack import FrontendStack

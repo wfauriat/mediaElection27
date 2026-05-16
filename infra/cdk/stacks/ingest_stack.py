@@ -118,7 +118,7 @@ class IngestStack(Stack):
         )
         self.raw_bucket.grant_write(self.ingest_fn)
 
-        # === EventBridge cron: fire ingest 4×/day (every 6h, on the hour UTC) ===
+        # === EventBridge cron: fire ingest 4x/day (every 6h, on the hour UTC) ===
         cron_rule = events.Rule(
             self,
             "IngestSchedule",
