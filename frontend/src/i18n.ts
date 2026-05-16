@@ -6,6 +6,13 @@ export const t = {
     title: "mediaElection27",
     subtitle: "Couverture média de la présidentielle 2027",
   },
+  nav: {
+    dashboard: "Tendances",
+    leaderboard: "Classement",
+    share: "Part de voix",
+    sources: "Par média",
+    articles: "Articles",
+  },
   filters: {
     candidates: "Candidats",
     selectAll: "Tout sélectionner",
@@ -27,6 +34,18 @@ export const t = {
     articles: "Articles",
     activeSources: "Médias actifs",
     period: "Période sélectionnée",
+  },
+  leaderboard: {
+    title: "Classement des candidats",
+    subtitle: "Trié par nombre de mentions sur la période sélectionnée",
+    col: {
+      candidate: "Candidat",
+      totalMentions: "Mentions",
+      outlets: "Médias",
+      latest: "Dernière mention",
+      trend: "Tendance",
+    },
+    ineligibleBadge: "Inéligible",
   },
   errors: {
     apiUnreachable: "API indisponible. Vérifiez que `make api` est en cours d'exécution.",

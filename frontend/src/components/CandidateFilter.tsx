@@ -2,6 +2,7 @@ import { useSearchParams } from "react-router-dom";
 
 import type { Candidate } from "@/api/candidates";
 import { colorForCandidate } from "@/lib/colors";
+import { compareByLean } from "@/lib/lean";
 import {
   type CandidateSelection,
   parseCandidateSelection,
@@ -43,8 +44,8 @@ export function CandidateFilter({ candidates }: CandidateFilterProps) {
   const isAllSelected = selection === null;
   const isNoneSelected = selection !== null && selection.length === 0;
 
-  const eligibles = candidates.filter((c) => c.eligible);
-  const ineligibles = candidates.filter((c) => !c.eligible);
+  const eligibles = candidates.filter((c) => c.eligible).sort(compareByLean);
+  const ineligibles = candidates.filter((c) => !c.eligible).sort(compareByLean);
 
   return (
     <section className="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
