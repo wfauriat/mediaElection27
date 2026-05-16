@@ -52,6 +52,7 @@ class ApiStack(Stack):
         lambda_vpc_sg: ec2.ISecurityGroup,
         db: rds.IDatabaseInstance,
         db_secret: secretsmanager.ISecret,
+        deps_layer: lambda_.ILayerVersion,
         **kwargs: object,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -62,6 +63,7 @@ class ApiStack(Stack):
             runtime=lambda_.Runtime.PYTHON_3_12,
             code=lambda_.Code.from_asset(str(PROJECT_ROOT), exclude=LAMBDA_EXCLUDES),
             handler="app.api.mangum_handler.handler",
+            layers=[deps_layer],
             memory_size=512,
             timeout=Duration.seconds(30),
             environment={

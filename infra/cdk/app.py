@@ -17,6 +17,7 @@ from stacks.frontend_stack import FrontendStack
 from stacks.ingest_stack import IngestStack
 from stacks.network_stack import NetworkStack
 from stacks.observability_stack import ObservabilityStack
+from stacks.runtime_stack import RuntimeStack
 
 REGION = "eu-west-3"
 
@@ -28,6 +29,8 @@ env = Environment(
 app = App()
 
 network = NetworkStack(app, "Media27Network", env=env)
+
+runtime = RuntimeStack(app, "Media27Runtime", env=env)
 
 data = DataStack(
     app,
@@ -45,9 +48,11 @@ ingest = IngestStack(
     lambda_vpc_sg=network.lambda_vpc_sg,
     db=data.db,
     db_secret=data.db_secret,
+    deps_layer=runtime.deps_layer,
     env=env,
 )
 ingest.add_dependency(data)
+ingest.add_dependency(runtime)
 
 api = ApiStack(
     app,
@@ -56,9 +61,11 @@ api = ApiStack(
     lambda_vpc_sg=network.lambda_vpc_sg,
     db=data.db,
     db_secret=data.db_secret,
+    deps_layer=runtime.deps_layer,
     env=env,
 )
 api.add_dependency(data)
+api.add_dependency(runtime)
 
 frontend = FrontendStack(app, "Media27Frontend", env=env)
 

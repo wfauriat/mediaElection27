@@ -59,6 +59,7 @@ class IngestStack(Stack):
         lambda_vpc_sg: ec2.ISecurityGroup,
         db: rds.IDatabaseInstance,
         db_secret: secretsmanager.ISecret,
+        deps_layer: lambda_.ILayerVersion,
         **kwargs: object,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -101,6 +102,7 @@ class IngestStack(Stack):
             runtime=common_runtime,
             code=common_code,
             handler="app.ingest.lambda_handler.handler",
+            layers=[deps_layer],
             memory_size=512,
             timeout=Duration.minutes(5),
             environment={
@@ -138,6 +140,7 @@ class IngestStack(Stack):
             runtime=common_runtime,
             code=common_code,
             handler="app.ingest.loader_handler.handler",
+            layers=[deps_layer],
             memory_size=512,
             timeout=Duration.minutes(5),
             environment={
