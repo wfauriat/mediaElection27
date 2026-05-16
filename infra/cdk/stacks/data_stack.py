@@ -1,16 +1,19 @@
-"""Stateful resources for the media27 stack: RDS Postgres + Secrets Manager + raw-feed S3 bucket.
+"""Stateful resources for the media27 stack: RDS Postgres + Secrets Manager.
 
-Removal policies are mostly DESTROY (Free Tier portfolio project — `cdk destroy`
-should produce a clean teardown), except the RDS instance, which is SNAPSHOT so
-the data survives any accidental stack destruction. A `pg_dump` to S3 before
-destroy remains the primary backup; the snapshot is the safety net.
+The raw-feed S3 bucket lives in IngestStack (it's purely operational plumbing
+for the ingest pipeline, and co-locating it with the loader Lambda avoids a
+cross-stack cycle on the S3 event notification).
+
+Removal policy is DESTROY for the secret (regenerable) and SNAPSHOT for the
+RDS instance — so an accidental `cdk destroy` still leaves a recoverable
+image. A `pg_dump` to S3 before destroy remains the primary backup; the
+snapshot is the safety net.
 """
 
 from aws_cdk import Duration, RemovalPolicy, Stack
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_logs as logs
 from aws_cdk import aws_rds as rds
-from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_secretsmanager as secretsmanager
 from constructs import Construct
 
@@ -71,29 +74,4 @@ class DataStack(Stack):
             # manual snapshot before tearing down the instance. The snapshot
             # survives independently and can restore the DB later.
             removal_policy=RemovalPolicy.SNAPSHOT,
-        )
-
-        self.raw_bucket = s3.Bucket(
-            self,
-            "RawBucket",
-            block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
-            encryption=s3.BucketEncryption.S3_MANAGED,
-            enforce_ssl=True,
-            versioned=False,
-            lifecycle_rules=[
-                s3.LifecycleRule(
-                    id="glacier-30-delete-365",
-                    transitions=[
-                        s3.Transition(
-                            storage_class=s3.StorageClass.GLACIER_INSTANT_RETRIEVAL,
-                            transition_after=Duration.days(30),
-                        ),
-                    ],
-                    expiration=Duration.days(365),
-                ),
-            ],
-            # auto_delete_objects=True is required so `cdk destroy` can drop a
-            # non-empty bucket; CDK adds a custom resource that empties it first.
-            removal_policy=RemovalPolicy.DESTROY,
-            auto_delete_objects=True,
         )
