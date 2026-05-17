@@ -3,7 +3,9 @@
 Triggered by S3 ObjectCreated on the raw bucket. For each record:
 parse the XML body, dedup, insert into `articles`, and write an
 `ingest_runs` audit row. Reuses `_persist_articles` and `_record_run`
-from app.ingest.run so persistence logic lives in one place.
+from app.ingest.run so persistence logic lives in one place. After
+all records are persisted, runs the keyword matcher inline so
+mentions stay in step with articles.
 
 DB credentials arrive as plaintext Lambda env vars (resolved from
 Secrets Manager by CloudFormation at deploy time). The cold-start
@@ -176,4 +178,19 @@ def handler(event: dict[str, Any], context: object) -> dict[str, Any]:
         bucket = record["s3"]["bucket"]["name"]
         key = urllib.parse.unquote_plus(record["s3"]["object"]["key"])
         results.append(_process_record(bucket, key))
-    return {"processed": len(results), "items": results}
+
+    # Run the keyword matcher inline after persistence so mentions stay
+    # in step with articles. `run_extract(reprocess_all=False)` skips any
+    # article that already has a mention from this extractor+version, so
+    # repeated invocations are cheap. Failures are recorded but never
+    # propagate — persistence is the loader's primary job; matching can
+    # be backfilled by a manual `{"action": "extract"}` invoke.
+    n_inserted = sum(r.get("n_inserted", 0) for r in results if r.get("n_inserted"))
+    extract: dict[str, Any] | None = None
+    if n_inserted > 0:
+        try:
+            extract = _run_extract(reprocess_all=False)
+        except Exception as exc:
+            extract = {"error": f"{type(exc).__name__}: {exc}"}
+
+    return {"processed": len(results), "items": results, "extract": extract}
