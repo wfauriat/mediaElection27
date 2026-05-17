@@ -38,8 +38,9 @@ migrate:  ## Apply alembic migrations
 seed:  ## Seed candidates and sources from YAML
 	$(PY) -m app.sources.seed
 
-ingest-once:  ## Run one ingest pass against all configured RSS feeds
+ingest-once: ## Run one ingest pass, then keyword-extract any new articles
 	$(PY) -m app.ingest.run --once
+	$(PY) -m app.extract.run
 
 extract:  ## Run keyword extractor over articles that don't yet have mentions
 	$(PY) -m app.extract.run

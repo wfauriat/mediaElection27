@@ -26,6 +26,7 @@ export type ArticleList = z.infer<typeof ArticleListSchema>;
 
 export interface ArticlesParams {
   candidateIds?: number[];
+  hasMention?: boolean;
   sourceIds?: number[];
   from?: string;
   to?: string;
@@ -34,12 +35,13 @@ export interface ArticlesParams {
 }
 
 export function useArticles(params: ArticlesParams) {
-  const { candidateIds, sourceIds, from, to, limit = 20, offset = 0 } = params;
+  const { candidateIds, hasMention, sourceIds, from, to, limit = 20, offset = 0 } = params;
   return useQuery({
-    queryKey: ["articles", { candidateIds, sourceIds, from, to, limit, offset }],
+    queryKey: ["articles", { candidateIds, hasMention, sourceIds, from, to, limit, offset }],
     queryFn: async () => {
       const data = await apiGet<unknown>("/articles", {
         candidate_id: candidateIds,
+        has_mention: hasMention,
         source_id: sourceIds,
         from,
         to,

@@ -164,6 +164,42 @@ async def test_articles_invalid_limit_rejected(aclient):
     assert r.status_code == 422  # FastAPI validation: ge=1 le=100
 
 
+async def test_articles_has_mention_partitions_total(aclient):
+    # has_mention=true ⊎ has_mention=false should sum to the unfiltered total.
+    full = (await aclient.get("/articles", params={"limit": 1})).json()
+    with_m = (await aclient.get("/articles", params={"has_mention": "true", "limit": 1})).json()
+    no_m = (await aclient.get("/articles", params={"has_mention": "false", "limit": 1})).json()
+    assert with_m["total"] + no_m["total"] == full["total"]
+
+
+async def test_articles_has_mention_false_returns_unmatched_only(aclient):
+    r = await aclient.get("/articles", params={"has_mention": "false", "limit": 50})
+    assert r.status_code == 200
+    body = r.json()
+    assert all(a["candidate_ids"] == [] for a in body["items"])
+
+
+async def test_articles_has_mention_true_returns_matched_only(aclient):
+    r = await aclient.get("/articles", params={"has_mention": "true", "limit": 50})
+    assert r.status_code == 200
+    body = r.json()
+    assert all(len(a["candidate_ids"]) >= 1 for a in body["items"])
+
+
+async def test_articles_candidate_id_takes_precedence_over_has_mention(aclient):
+    # When both are passed, candidate_id wins and has_mention is ignored.
+    cands = (await aclient.get("/candidates")).json()
+    bardella = next(c for c in cands if c["slug"] == "bardella")
+    r = await aclient.get(
+        "/articles",
+        params={"candidate_id": bardella["id"], "has_mention": "false", "limit": 20},
+    )
+    assert r.status_code == 200
+    body = r.json()
+    if body["items"]:
+        assert all(bardella["id"] in a["candidate_ids"] for a in body["items"])
+
+
 async def test_openapi_schema_served(aclient):
     r = await aclient.get("/openapi.json")
     assert r.status_code == 200

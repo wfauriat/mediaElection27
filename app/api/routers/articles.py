@@ -25,6 +25,15 @@ async def list_articles(
         list[int] | None,
         Query(description="Only articles mentioning at least one of these candidates"),
     ] = None,
+    has_mention: Annotated[
+        bool | None,
+        Query(
+            description=(
+                "true → articles with ≥1 mention (any candidate); "
+                "false → articles with zero mentions. Ignored if candidate_id is set."
+            ),
+        ),
+    ] = None,
     source_id: Annotated[list[int] | None, Query()] = None,
     from_: Annotated[date | None, Query(alias="from")] = None,
     to: Annotated[date | None, Query()] = None,
@@ -37,6 +46,11 @@ async def list_articles(
         # Only articles that have at least one mention of one of the requested candidates.
         sub = select(Mention.article_id).where(Mention.candidate_id.in_(candidate_id))
         base = base.where(Article.id.in_(sub))
+    elif has_mention is not None:
+        any_mention = select(Mention.article_id)
+        base = base.where(
+            Article.id.in_(any_mention) if has_mention else Article.id.not_in(any_mention)
+        )
     if source_id:
         base = base.where(Article.source_id.in_(source_id))
     if from_:

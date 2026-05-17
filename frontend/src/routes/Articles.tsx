@@ -39,11 +39,21 @@ export default function Articles() {
     return { candidateSelection, from, to, sourceId, offset };
   }, [searchParams]);
 
+  // Tri-state candidate filter → API params:
+  //   null            → no filter (all ingested articles, with or without mentions)
+  //   []              → has_mention=false (articles with zero mentions)
+  //   [id, id, ...]   → candidate_id IN (...)
+  const candidateApiParams = useMemo<
+    Pick<Parameters<typeof useArticles>[0], "candidateIds" | "hasMention">
+  >(() => {
+    const sel = filters.candidateSelection;
+    if (sel === null) return {};
+    if (sel.length === 0) return { hasMention: false };
+    return { candidateIds: sel };
+  }, [filters.candidateSelection]);
+
   const articlesQuery = useArticles({
-    candidateIds:
-      filters.candidateSelection && filters.candidateSelection.length > 0
-        ? filters.candidateSelection
-        : undefined,
+    ...candidateApiParams,
     sourceIds: filters.sourceId !== null ? [filters.sourceId] : undefined,
     from: filters.from,
     to: filters.to,
@@ -77,7 +87,9 @@ export default function Articles() {
           {sourcesQuery.data && (
             <SourceFilter sources={sourcesQuery.data} selectedSourceId={filters.sourceId} allowAll />
           )}
-          {candidatesQuery.data && <CandidateFilter candidates={candidatesQuery.data} />}
+          {candidatesQuery.data && (
+            <CandidateFilter candidates={candidatesQuery.data} allArticlesToggle />
+          )}
           <DateRangeFilter />
         </aside>
 

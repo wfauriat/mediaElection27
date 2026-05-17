@@ -12,9 +12,14 @@ import { t } from "@/i18n";
 
 interface CandidateFilterProps {
   candidates: Candidate[];
+  /** Articles-page mode: surface an "all ingested articles (incl. no-mention)" toggle.
+   *  When ON, the URL drops the `candidates` param entirely (null selection).
+   *  When OFF, the candidate checkboxes drive an explicit list; deselecting all
+   *  yields `[]` which the Articles route interprets as `has_mention=false`. */
+  allArticlesToggle?: boolean;
 }
 
-export function CandidateFilter({ candidates }: CandidateFilterProps) {
+export function CandidateFilter({ candidates, allArticlesToggle = false }: CandidateFilterProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const selection: CandidateSelection = parseCandidateSelection(searchParams.get("candidates"));
   const allIds = candidates.map((c) => c.id);
@@ -31,8 +36,10 @@ export function CandidateFilter({ candidates }: CandidateFilterProps) {
     const next = effective.includes(id)
       ? effective.filter((x) => x !== id)
       : [...effective, id].sort((a, b) => a - b);
-    // If toggling lands us back on "all", normalise to null so the URL stays clean.
-    if (next.length === allIds.length) {
+    // Without the toggle, "all checked" collapses to null so the URL stays clean.
+    // With the toggle, null is reserved for the explicit "Tous les articles" mode,
+    // so we keep the full list explicit even when every id is checked.
+    if (!allArticlesToggle && next.length === allIds.length) {
       setSelection(null);
     } else {
       setSelection(next);
@@ -41,8 +48,15 @@ export function CandidateFilter({ candidates }: CandidateFilterProps) {
 
   // For the checkbox UI: null = all checked, [] = none checked, [...] = those checked.
   const checkedSet = new Set<number>(selection === null ? allIds : selection);
-  const isAllSelected = selection === null;
-  const isNoneSelected = selection !== null && selection.length === 0;
+  const allArticlesMode = allArticlesToggle && selection === null;
+  // In toggle mode, the "Select all" link writes the full id list (so the
+  // "with mention" semantics apply); the "Clear all" link writes []
+  // ("no mention" semantics). Outside toggle mode, "Select all" reverts to null.
+  const selectAllAction = () => setSelection(allArticlesToggle ? allIds : null);
+  const isSelectAllDisabled = allArticlesToggle
+    ? selection !== null && selection.length === allIds.length
+    : selection === null;
+  const isClearAllDisabled = selection !== null && selection.length === 0;
 
   const eligibles = candidates.filter((c) => c.eligible).sort(compareByLean);
   const ineligibles = candidates.filter((c) => !c.eligible).sort(compareByLean);
@@ -55,8 +69,8 @@ export function CandidateFilter({ candidates }: CandidateFilterProps) {
           <button
             type="button"
             className="text-xs text-indigo-600 hover:underline disabled:cursor-not-allowed disabled:text-slate-300"
-            onClick={() => setSelection(null)}
-            disabled={isAllSelected}
+            onClick={selectAllAction}
+            disabled={isSelectAllDisabled}
           >
             {t.filters.selectAll}
           </button>
@@ -65,27 +79,48 @@ export function CandidateFilter({ candidates }: CandidateFilterProps) {
             type="button"
             className="text-xs text-indigo-600 hover:underline disabled:cursor-not-allowed disabled:text-slate-300"
             onClick={() => setSelection([])}
-            disabled={isNoneSelected}
+            disabled={isClearAllDisabled}
           >
             {t.filters.clearAll}
           </button>
         </div>
       </div>
-      <CandidateGroup
-        title={t.filters.eligible}
-        candidates={eligibles}
-        checkedSet={checkedSet}
-        onToggle={toggle}
-      />
-      {ineligibles.length > 0 && (
+      {allArticlesToggle && (
+        <label className="mb-3 flex cursor-pointer items-start gap-2 rounded border border-slate-200 bg-slate-50 px-2 py-2 hover:bg-slate-100">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+            checked={allArticlesMode}
+            onChange={(e) => setSelection(e.target.checked ? null : allIds)}
+          />
+          <span className="text-sm">
+            <span className="font-medium text-slate-800">{t.filters.allArticles}</span>
+            <span className="block text-xs text-slate-500">{t.filters.allArticlesHint}</span>
+          </span>
+        </label>
+      )}
+      {allArticlesToggle && !allArticlesMode && selection?.length === 0 && (
+        <div className="mb-3 rounded border border-amber-200 bg-amber-50 px-2 py-2 text-xs text-amber-800">
+          {t.filters.noMentionHint}
+        </div>
+      )}
+      <fieldset disabled={allArticlesMode} className={allArticlesMode ? "opacity-50" : ""}>
         <CandidateGroup
-          title={t.filters.ineligible}
-          candidates={ineligibles}
+          title={t.filters.eligible}
+          candidates={eligibles}
           checkedSet={checkedSet}
           onToggle={toggle}
-          muted
         />
-      )}
+        {ineligibles.length > 0 && (
+          <CandidateGroup
+            title={t.filters.ineligible}
+            candidates={ineligibles}
+            checkedSet={checkedSet}
+            onToggle={toggle}
+            muted
+          />
+        )}
+      </fieldset>
     </section>
   );
 }
