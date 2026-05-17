@@ -26,6 +26,7 @@ LAMBDA_EXCLUDES = [
     "frontend",
     "infra",
     "tests",
+    "dev",
     ".venv",
     "raw",
     ".git",
@@ -38,6 +39,7 @@ LAMBDA_EXCLUDES = [
     "cdk.out",
     "*.sql",
     "*.dump",
+    "*.md",
     "backup.sql",
 ]
 

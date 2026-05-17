@@ -159,15 +159,22 @@ long before any quota is hit.
 
 ## Documents
 
-- [`PLAN-v1.md`](./PLAN-v1.md) — original design document with the
-  full plan, schema, and phase milestones
-- [`MENTAL-MODELS.md`](./MENTAL-MODELS.md) — reference doc for the IaC
-  and data-engineering mental models the project exercises
-- [`CHECKPOINT-2026-05-17.md`](./CHECKPOINT-2026-05-17.md) — end-of-Week-4
-  notes: what shipped, what nearly didn't, what's next
-- [`SPECIFICATION-REBUILD.md`](./SPECIFICATION-REBUILD.md) — self-contained
-  rebuild specification useful for a hand-implementation in a separate
-  training repository
+All design and reference docs live under [`dev/`](./dev/):
+
+- [`dev/PLAN-v1.md`](./dev/PLAN-v1.md) — original design document with
+  the full plan, schema, and phase milestones
+- [`dev/MENTAL-MODELS.md`](./dev/MENTAL-MODELS.md) — reference doc for
+  the IaC and data-engineering mental models the project exercises
+- [`dev/CHECKPOINT-2026-05-17.md`](./dev/CHECKPOINT-2026-05-17.md) —
+  end-of-Week-4 notes: what shipped, what nearly didn't, what's next
+- [`dev/CHECKPOINT-2026-05-15.md`](./dev/CHECKPOINT-2026-05-15.md) —
+  end-of-Week-3 notes from the local-pipeline-complete milestone
+- [`dev/SPECIFICATION-REBUILD.md`](./dev/SPECIFICATION-REBUILD.md) —
+  self-contained rebuild specification useful for a hand-implementation
+  in a separate training repository
+- [`dev/cheatsheet_sql.md`](./dev/cheatsheet_sql.md) — Postgres queries
+  used during eval and analysis
+- [`dev/schema_db.md`](./dev/schema_db.md) — schema notes / reasoning
 
 ## Footer
 
