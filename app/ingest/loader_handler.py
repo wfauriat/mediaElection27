@@ -8,6 +8,10 @@ from app.ingest.run so persistence logic lives in one place.
 DB credentials come from Secrets Manager. The Lambda resolves them
 once on cold start and mutates `settings.database_url_sync` before
 any SQLAlchemy engine is built.
+
+Also dispatches one-off admin actions when invoked with a non-S3
+payload: `{"action": "migrate"}` runs `alembic upgrade head` against
+the in-VPC RDS, and `{"action": "seed"}` runs `app.sources.seed.main()`.
 """
 
 from __future__ import annotations
@@ -118,7 +122,39 @@ def _process_record(bucket: str, key: str) -> dict[str, Any]:
     }
 
 
+def _run_migrate() -> dict[str, Any]:
+    from pathlib import Path
+
+    from alembic import command
+    from alembic.config import Config
+
+    # `app.ingest.loader_handler` -> .../app/ingest/loader_handler.py
+    # parents[2] is the project root, where alembic.ini is bundled.
+    project_root = Path(__file__).resolve().parents[2]
+    cfg = Config(str(project_root / "alembic.ini"))
+    cfg.set_main_option("script_location", str(project_root / "app" / "db" / "migrations"))
+
+    from app.config import settings
+
+    cfg.set_main_option("sqlalchemy.url", settings.database_url_sync)
+    command.upgrade(cfg, "head")
+    return {"action": "migrate", "status": "ok"}
+
+
+def _run_seed() -> dict[str, Any]:
+    from app.sources.seed import main as seed_main
+
+    seed_main()
+    return {"action": "seed", "status": "ok"}
+
+
 def handler(event: dict[str, Any], context: object) -> dict[str, Any]:
+    action = event.get("action") if isinstance(event, dict) else None
+    if action == "migrate":
+        return _run_migrate()
+    if action == "seed":
+        return _run_seed()
+
     results: list[dict[str, Any]] = []
     for record in event.get("Records", []):
         bucket = record["s3"]["bucket"]["name"]
