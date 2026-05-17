@@ -5,9 +5,12 @@ parse the XML body, dedup, insert into `articles`, and write an
 `ingest_runs` audit row. Reuses `_persist_articles` and `_record_run`
 from app.ingest.run so persistence logic lives in one place.
 
-DB credentials come from Secrets Manager. The Lambda resolves them
-once on cold start and mutates `settings.database_url_sync` before
-any SQLAlchemy engine is built.
+DB credentials arrive as plaintext Lambda env vars (resolved from
+Secrets Manager by CloudFormation at deploy time). The cold-start
+hook stitches them into the sync DSN before any SQLAlchemy engine
+is built. We avoid a runtime Secrets Manager call because the
+loader runs in PRIVATE_ISOLATED subnets with no path to AWS public
+APIs.
 
 Also dispatches one-off admin actions when invoked with a non-S3
 payload: `{"action": "migrate"}` runs `alembic upgrade head` against
@@ -16,7 +19,6 @@ the in-VPC RDS, and `{"action": "seed"}` runs `app.sources.seed.main()`.
 
 from __future__ import annotations
 
-import json
 import os
 import urllib.parse
 from datetime import UTC, datetime
@@ -25,22 +27,19 @@ from typing import Any
 import boto3
 
 
-def _configure_db_url_from_secrets() -> None:
+def _configure_db_url_from_env() -> None:
     """Cold-start hook: build the sync DSN before the engine is created.
 
     Only runs inside the Lambda runtime (detected via AWS_LAMBDA_FUNCTION_NAME)
-    so local imports of this module don't try to call Secrets Manager.
+    so local imports of this module don't touch settings.
     """
     if "AWS_LAMBDA_FUNCTION_NAME" not in os.environ:
         return
 
     from app.config import settings
 
-    sm = boto3.client("secretsmanager")
-    raw = sm.get_secret_value(SecretId=os.environ["DB_SECRET_ARN"])["SecretString"]
-    secret = json.loads(raw)
-    user = urllib.parse.quote(secret["username"], safe="")
-    pwd = urllib.parse.quote(secret["password"], safe="")
+    user = urllib.parse.quote(os.environ["DB_USERNAME"], safe="")
+    pwd = urllib.parse.quote(os.environ["DB_PASSWORD"], safe="")
     host = os.environ["DB_HOST"]
     port = os.environ.get("DB_PORT", "5432")
     name = os.environ["DB_NAME"]
@@ -49,7 +48,7 @@ def _configure_db_url_from_secrets() -> None:
     )
 
 
-_configure_db_url_from_secrets()
+_configure_db_url_from_env()
 
 # Imports below trigger the engine module — must be after the DSN is fixed.
 from sqlalchemy import select  # noqa: E402

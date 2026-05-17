@@ -144,7 +144,17 @@ class IngestStack(Stack):
             memory_size=512,
             timeout=Duration.minutes(5),
             environment={
-                "DB_SECRET_ARN": db_secret.secret_arn,
+                # CFN resolves these {{resolve:secretsmanager:...}} tokens at
+                # deploy time so the Lambda receives plaintext credentials.
+                # This avoids a runtime Secrets Manager call, which would
+                # need a ~$15/mo VPC interface endpoint to reach from
+                # PRIVATE_ISOLATED subnets.
+                "DB_USERNAME": db_secret.secret_value_from_json(
+                    "username"
+                ).unsafe_unwrap(),
+                "DB_PASSWORD": db_secret.secret_value_from_json(
+                    "password"
+                ).unsafe_unwrap(),
                 "DB_HOST": db.db_instance_endpoint_address,
                 "DB_PORT": db.db_instance_endpoint_port,
                 "DB_NAME": "media27",
@@ -157,7 +167,6 @@ class IngestStack(Stack):
             security_groups=[lambda_vpc_sg],
         )
         self.raw_bucket.grant_read(self.loader_fn)
-        db_secret.grant_read(self.loader_fn)
 
         self.loader_fn.add_event_source(
             lambda_events.S3EventSource(

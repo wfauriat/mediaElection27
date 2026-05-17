@@ -3,32 +3,28 @@
 The CDK stack points this function's handler at
 `app.api.mangum_handler.handler`.
 
-Cold-start hook (`_configure_db_url_from_secrets`) resolves the RDS
-credentials from Secrets Manager once and mutates
-`settings.database_url` (async) before any SQLAlchemy engine is built.
-Gated on AWS_LAMBDA_FUNCTION_NAME so local imports skip Secrets Manager.
+DB credentials arrive as plaintext Lambda env vars (resolved from
+Secrets Manager by CloudFormation at deploy time). The cold-start
+hook stitches them into the async DSN before any SQLAlchemy engine
+is built. We avoid a runtime Secrets Manager call because the API
+Lambda runs in PRIVATE_ISOLATED subnets with no path to AWS public
+APIs.
 """
 
 from __future__ import annotations
 
-import json
 import os
 import urllib.parse
 
-import boto3
 
-
-def _configure_db_url_from_secrets() -> None:
+def _configure_db_url_from_env() -> None:
     if "AWS_LAMBDA_FUNCTION_NAME" not in os.environ:
         return
 
     from app.config import settings
 
-    sm = boto3.client("secretsmanager")
-    raw = sm.get_secret_value(SecretId=os.environ["DB_SECRET_ARN"])["SecretString"]
-    secret = json.loads(raw)
-    user = urllib.parse.quote(secret["username"], safe="")
-    pwd = urllib.parse.quote(secret["password"], safe="")
+    user = urllib.parse.quote(os.environ["DB_USERNAME"], safe="")
+    pwd = urllib.parse.quote(os.environ["DB_PASSWORD"], safe="")
     host = os.environ["DB_HOST"]
     port = os.environ.get("DB_PORT", "5432")
     name = os.environ["DB_NAME"]
@@ -37,7 +33,7 @@ def _configure_db_url_from_secrets() -> None:
     )
 
 
-_configure_db_url_from_secrets()
+_configure_db_url_from_env()
 
 from mangum import Mangum  # noqa: E402
 
