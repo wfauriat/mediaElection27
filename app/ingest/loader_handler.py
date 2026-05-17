@@ -14,7 +14,9 @@ APIs.
 
 Also dispatches one-off admin actions when invoked with a non-S3
 payload: `{"action": "migrate"}` runs `alembic upgrade head` against
-the in-VPC RDS, and `{"action": "seed"}` runs `app.sources.seed.main()`.
+the in-VPC RDS, `{"action": "seed"}` runs `app.sources.seed.main()`,
+and `{"action": "extract", "reprocess_all": false}` runs the keyword
+matcher over articles (equivalent of local `make extract`).
 """
 
 from __future__ import annotations
@@ -147,12 +149,27 @@ def _run_seed() -> dict[str, Any]:
     return {"action": "seed", "status": "ok"}
 
 
+def _run_extract(reprocess_all: bool) -> dict[str, Any]:
+    from app.extract.run import run_extract
+
+    inserted = run_extract(reprocess_all=reprocess_all)
+    return {
+        "action": "extract",
+        "status": "ok",
+        "inserted": inserted,
+        "reprocess_all": reprocess_all,
+    }
+
+
 def handler(event: dict[str, Any], context: object) -> dict[str, Any]:
     action = event.get("action") if isinstance(event, dict) else None
     if action == "migrate":
         return _run_migrate()
     if action == "seed":
         return _run_seed()
+    if action == "extract":
+        reprocess_all = bool(event.get("reprocess_all", False))
+        return _run_extract(reprocess_all)
 
     results: list[dict[str, Any]] = []
     for record in event.get("Records", []):
