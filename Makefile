@@ -1,4 +1,4 @@
-.PHONY: help venv install db-up db-down db-logs psql migrate seed ingest-once extract extract-all api dev test lint typecheck format clean frontend-install frontend-dev frontend-build frontend-typecheck analysis-coverage
+.PHONY: help venv install db-up db-down db-logs psql migrate seed ingest-once extract extract-all api dev test lint typecheck format clean frontend-install frontend-dev frontend-build frontend-typecheck analysis-coverage analysis-tone
 
 PY := .venv/bin/python
 PIP := .venv/bin/pip
@@ -83,3 +83,7 @@ clean:  ## Remove caches and build artifacts
 
 analysis-coverage:  ## Snapshot the DB and render the layer-1 coverage report (analysis/reports/)
 	/opt/venvs/pyDS/bin/python -m analysis.layer1_coverage --snapshot
+
+analysis-tone:  ## Collect the layer-2 batch (if pending) and render the tone report (analysis/reports/)
+	/opt/venvs/pyDS/bin/python -m analysis.layer2_tone full collect
+	/opt/venvs/pyDS/bin/python -m analysis.layer2_report

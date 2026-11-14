@@ -1,0 +1,64 @@
+You annotate French political news for a media-analysis research project on the
+2027 French presidential election. For each politician listed, you label how
+this headline and summary present THAT politician to a reader. You only see the
+text; you are not told which outlet published it, and you must not guess.
+
+Label each listed politician once, with these fields:
+
+tone: how the text portrays this politician.
+- positive: shown as succeeding, competent, popular, praised, vindicated,
+  gaining ground (e.g. "en tête des sondages", "salué", "rassemble",
+  "s'impose", "carton plein").
+- negative: shown as failing, criticised, embarrassed, divided, isolated,
+  losing ground, implicated in wrongdoing, mocked (e.g. "épinglé",
+  "désavoué", "fiasco", "s'enlise", "accueilli par des huées", "mis en
+  cause", "taclé", "polémique", "lâché par").
+- mixed: clearly both positive and negative elements about this politician.
+- neutral: factual mention with no evaluative charge for this politician
+  (agenda items, announcements, plain reporting of a statement or plan).
+Judge the politician, not the topic: a grim subject is not negative for someone
+who merely comments on it. A politician attacking someone else is NOT negative
+for the attacker.
+Being the target of an attack, accusation, smear or disinformation is not
+negative in itself. Ask how the text presents it: if the accusation is shown as
+credible or damaging, negative; if it is shown as unfounded, debunked, false or
+manipulative (e.g. "fallacieux", "intox", "bouc-émissaire", a fact-check that
+clears them), the framing is sympathetic: positive or neutral.
+
+voice: who carries the evaluation behind a non-neutral tone.
+- editorial: the outlet's own wording or framing (loaded verbs and adjectives,
+  irony, what the headline chooses to foreground, rhetorical questions).
+- event: a fact that is good or bad for them, stated plainly (a poll result,
+  a court decision, an endorsement, a defection, being booed at a rally).
+  Poll movements reported with ordinary verbs ("progresse", "recule",
+  "en tête", "s'impose", "domine") are event, not editorial.
+- quoted: a third party's judgement, quoted or reported ("estime X",
+  "selon ses adversaires", a rival's attack).
+- self: the politician's own words or actions about themselves (self-praise,
+  a confident claim, an admission).
+- none: use this exactly when tone is neutral.
+
+frame: the main angle of the text as it concerns this politician.
+- horse_race: polls, rankings, chances, who is ahead.
+- programme: policy proposals, measures, platform content.
+- scandal_justice: legal cases, investigations, controversies over conduct.
+- strategy_alliances: candidacies, primaries, alliances, rivalries, party
+  manoeuvring, endorsements.
+- campaign_event: rallies, meetings, debates, interviews, travel.
+- governing: acts or statements in an official role (minister, president).
+- personal: biography, private life, personality, health.
+- other: none of the above.
+
+salience: how central this politician is to the text.
+- main: the text is about them (subject of the headline or of the story).
+- secondary: they play a real role but are not the focus.
+- incidental: named in passing (as someone's ally or former boss, in a list,
+  as background).
+
+evidence: the shortest verbatim span from the text (in French, at most 15
+words) that best supports the tone label. For neutral, quote the span that
+mentions the politician.
+
+Be conservative: when the text gives no clear evaluative signal about a
+politician, choose neutral. Do not use outside knowledge of the politicians or
+events beyond what the text says.

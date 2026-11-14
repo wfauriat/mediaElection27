@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Media Tone Map</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
+  --series-1: #2a78d6; --series-ref: #898781; --thin: #e7e6e1; --warn-bg: #fdf3e1;
+  --div: #184f95,#2a78d6,#6da7ec,#b7d3f6,#f0efec,#f6c4aa,#e9895c,#c2501c,#8a3510;
+  --cat: #2a78d6,#eb6834,#1baf7a,#eda100,#e87ba4,#008300,#6250d6,#e34948;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+    --series-1: #3987e5; --series-ref: #898781; --thin: #262624; --warn-bg: #2e2717;
+    --div: #86b6ef,#3987e5,#256abf,#184f95,#383835,#7a3417,#b44a1d,#d95926,#f19a70;
+    --cat: #3987e5,#d95926,#199e70,#c98500,#d55181,#008300,#9085e9,#e66767;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+  --series-1: #3987e5; --series-ref: #898781; --thin: #262624; --warn-bg: #2e2717;
+  --div: #86b6ef,#3987e5,#256abf,#184f95,#383835,#7a3417,#b44a1d,#d95926,#f19a70;
+  --cat: #3987e5,#d95926,#199e70,#c98500,#d55181,#008300,#9085e9,#e66767;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink);
+  font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1120px; margin: 0 auto; padding: 24px 16px 64px; }
+header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+h2 { font-size: 19px; margin: 0 0 4px; }
+h3 { font-size: 15px; margin: 14px 0 4px; }
+.sub { color: var(--ink-2); margin: 0; }
+.muted { color: var(--muted); font-size: 13px; }
+button.theme { border: 1px solid var(--border); background: var(--surface); color: var(--ink-2);
+  border-radius: 8px; padding: 6px 10px; cursor: pointer; font: inherit; font-size: 13px; }
+.banner { background: var(--warn-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; margin: 16px 0 0; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 20px 0; }
+.tile { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+.tile .v { font-size: 26px; font-weight: 600; }
+.tile .l { color: var(--ink-2); font-size: 13px; }
+.sticky { position: sticky; top: 0; z-index: 5; background: var(--page); padding: 8px 0; display: flex;
+  gap: 12px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--grid); }
+section.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin: 18px 0; }
+.card p.lede { color: var(--ink-2); margin: 2px 0 12px; max-width: 78ch; }
+.findings ul { padding-left: 20px; } .findings li { margin: 6px 0; }
+.chart { width: 100%; }
+.scroll { overflow-x: auto; }
+.controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin: 8px 0 4px; }
+.controls label, .sticky label { font-size: 13px; color: var(--ink-2); display: flex; gap: 6px; align-items: center; }
+select { font: inherit; font-size: 14px; padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--page); color: var(--ink); }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: transparent; color: var(--ink-2); padding: 4px 10px; font: inherit; font-size: 13px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 600; }
+.legend-div { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-2); margin: 6px 0 2px; flex-wrap: wrap; }
+.legend-div .bar { width: 220px; height: 10px; border-radius: 5px; }
+.legend-div .sw { width: 14px; height: 10px; border-radius: 3px; background: var(--surface); display: inline-block; border: 1px solid var(--grid); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
+details { margin-top: 10px; } summary { cursor: pointer; color: var(--ink-2); font-size: 13px; }
+table { border-collapse: collapse; font-size: 13px; margin-top: 8px; font-variant-numeric: tabular-nums; }
+th, td { padding: 4px 8px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+td.sig { font-weight: 700; } td.thin { color: var(--muted); }
+.ex { border-top: 1px solid var(--grid); padding: 8px 0; }
+.ex .t { font-weight: 600; }
+.ex .meta { font-size: 12px; color: var(--ink-2); }
+.chip { display: inline-block; border: 1px solid var(--border); border-radius: 999px; padding: 0 8px; font-size: 12px; margin-right: 4px; color: var(--ink-2); }
+code { font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div>
+    <h1>How each outlet presents each politician</h1>
+    <p class="sub">mediaElection27 · layer 2 of the media orientation analysis: tone, labelled per (article, politician).</p>
+    <p class="muted" id="meta"></p>
+  </div>
+  <button class="theme" id="themeBtn" type="button">Toggle theme</button>
+</header>
+<div class="banner" id="banner" hidden></div>
+
+<div class="tiles" id="tiles"></div>
+
+<div class="sticky">
+  <span class="muted">Tone counted from</span>
+  <div class="seg" role="group" aria-label="Voice scope">
+    <button type="button" data-scope="all" aria-pressed="true">All voices (what readers see)</button>
+    <button type="button" data-scope="editorial" aria-pressed="false">Outlet's own wording only</button>
+  </div>
+</div>
+
+<section class="card findings" id="findingsCard">
+  <h2>Key findings</h2>
+  <!--__FINDINGS__-->
+</section>
+
+<section class="card">
+  <h2>Outlet map: attention vs tone</h2>
+  <p class="lede">Horizontal: <strong>tone slant</strong>, how much more favourably an outlet presents right-bloc candidates than left-bloc ones, compared with the average outlet (eligible candidates, centre excluded; whiskers = 90% interval). Vertical: <strong>coverage position</strong> from layer 1, where its attention sits. The two axes measure different things: an outlet can cover the right a lot and still present it negatively.</p>
+  <div class="chart" id="cMap" style="height:520px"></div>
+</section>
+
+<section class="card">
+  <h2>Press-average tone per politician</h2>
+  <p class="lede">Net tone = (positive − negative) ÷ labels, averaged over outlets with enough labels (each outlet weighted equally). Descriptive: a politician going through a bad patch is presented negatively by everyone.</p>
+  <div class="chart" id="cPol" style="height:460px"></div>
+</section>
+
+<section class="card">
+  <h2>Relative tone by political bloc</h2>
+  <p class="lede">An outlet's net tone toward a bloc minus the press average for that bloc. Orange = presented more favourably than elsewhere, blue = less. Values shown where the 90% interval excludes 0.</p>
+  <div class="legend-div" data-legend></div>
+  <div class="scroll"><div class="chart" id="cBloc" style="height:500px; min-width:640px"></div></div>
+  <details><summary>Show as table</summary><div class="scroll" id="tBloc"></div></details>
+</section>
+
+<section class="card">
+  <h2>Relative tone by politician</h2>
+  <p class="lede">Same measure per politician. <strong>Click a cell</strong> to read the labelled headlines behind it. † = tracked but not a candidate.</p>
+  <div class="legend-div" data-legend></div>
+  <div class="scroll"><div class="chart" id="cCand" style="height:560px; min-width:900px"></div></div>
+  <div id="examples" class="muted">Click a cell to see example headlines.</div>
+  <details><summary>Show as table</summary><div class="scroll" id="tCand"></div></details>
+</section>
+
+<section class="card">
+  <div class="two">
+    <div>
+      <h2>Who carries the tone</h2>
+      <p class="lede">Of an outlet's negative (or positive) labels, the share carried by its own wording, by reported events, by quoted third parties, or by the politicians' own words.</p>
+      <div class="controls"><div class="seg" role="group" aria-label="Tone">
+        <button type="button" data-vt="negative" aria-pressed="true">Negative labels</button>
+        <button type="button" data-vt="positive" aria-pressed="false">Positive labels</button>
+      </div></div>
+      <div class="chart" id="cVoice" style="height:500px"></div>
+    </div>
+    <div>
+      <h2>Story mix</h2>
+      <p class="lede">Share of each outlet's labels by main angle. Story <em>selection</em> (more scandal, more polls) is a form of slant distinct from wording.</p>
+      <div class="chart" id="cFrame" style="height:540px"></div>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Tone over time</h2>
+  <p class="lede">Monthly net tone toward one politician: selected outlet vs the average of outlets. Months with fewer than 5 labels are blank.</p>
+  <div class="controls">
+    <label>Politician <select id="selPol"></select></label>
+    <label>Outlet <select id="selOutlet"></select></label>
+  </div>
+  <div class="chart" id="cMonth" style="height:360px"></div>
+</section>
+
+<section class="card">
+  <h2>Validation and method</h2>
+  <ul id="validation"></ul>
+  <ul>
+    <li>Labels: Claude Haiku 5.5 (medium effort) with a written codebook; one request per article, headline + summary only, <strong>outlet name withheld</strong>. Fields: tone, voice, frame, salience, verbatim evidence.</li>
+    <li>Incidental mentions (named in passing) are excluded. Intervals: 400 bootstrap resamples of articles within each outlet, 90%; they hold the baseline fixed, so they are somewhat optimistic.</li>
+    <li>Descriptive only. Layer 3 compares outlets within the same weeks to separate editorial slant from the news itself.</li>
+    <li>Known limitations: headlines contradicted by their summary can be misread; voice is the least reliable field; keyword mention detection misses indirect references.</li>
+  </ul>
+</section>
+</main>
+
+<script>
+const DATA = /*__DATA__*/null;
+const fmt = (v, d = 2) => (v == null ? "–" : (v > 0 ? "+" : "") + v.toFixed(d));
+const pct = (v, d = 0) => (v == null ? "–" : (100 * v).toFixed(d) + "%");
+const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const charts = {};
+let scope = "all", voiceTone = "negative";
+const pols = DATA.politicians;
+const polLabel = (p) => p + (DATA.eligible[p] ? "" : " †");
+const outletLabel = (o) => `${o} · ${DATA.outlet_lean[o]}`;
+const FRAME_LABEL = { horse_race: "Polls / race", programme: "Programme", scandal_justice: "Scandal / justice",
+  strategy_alliances: "Strategy / alliances", campaign_event: "Campaign event", governing: "Governing",
+  personal: "Personal", other: "Other" };
+const VOICES = ["editorial", "event", "quoted", "self"];
+const VOICE_LABEL = { editorial: "Outlet's wording", event: "Reported event", quoted: "Quoted third party", self: "Politician's own words" };
+
+function theme() {
+  return { ink: css("--ink"), ink2: css("--ink-2"), muted: css("--muted"), grid: css("--grid"), axis: css("--axis"),
+    surface: css("--surface"), s1: css("--series-1"), ref: css("--series-ref"), thin: css("--thin"),
+    div: css("--div").split(",").map((s) => s.trim()), cat: css("--cat").split(",").map((s) => s.trim()) };
+}
+function base(t) {
+  return { textStyle: { fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif', color: t.ink2 }, animation: false,
+    tooltip: { backgroundColor: t.surface, borderColor: t.grid, textStyle: { color: t.ink, fontSize: 13 },
+      extraCssText: "box-shadow:0 4px 16px rgba(0,0,0,.12); border-radius:8px;" } };
+}
+function mk(id) {
+  if (charts[id]) charts[id].dispose();
+  charts[id] = echarts.init(document.getElementById(id), null, { renderer: "svg" });
+  return charts[id];
+}
+const isLight = () => document.documentElement.dataset.theme
+  ? document.documentElement.dataset.theme === "light" : !matchMedia("(prefers-color-scheme: dark)").matches;
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function header() {
+  const m = DATA.meta;
+  document.getElementById("meta").textContent = `Snapshot ${m.snapshot_at} · labelling arm ${m.arm}`;
+  if (m.source === "sample") {
+    const b = document.getElementById("banner");
+    b.hidden = false;
+    b.innerHTML = `<strong>Scaffold run on evaluation labels only (${m.n_labels} labels).</strong> The layout is final; the numbers are not. Most cells are too thin to assess until the full run is collected.`;
+  }
+  const mix = DATA.tone_mix, n = m.n_labels;
+  const tiles = [
+    [n.toLocaleString("en"), "(article, politician) labels"],
+    [m.n_articles.toLocaleString("en"), "articles"],
+    [pct(((mix.positive || 0) + (mix.negative || 0) + (mix.mixed || 0)) / n), "carry a non-neutral tone"],
+    ["$" + m.cost_usd.toFixed(2), "labelling cost"],
+  ];
+  document.getElementById("tiles").innerHTML = tiles.map(([v, l]) => `<div class="tile"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+  if (!document.querySelector("#findingsCard p, #findingsCard ul")) document.getElementById("findingsCard").style.display = "none";
+  document.getElementById("validation").innerHTML = Object.entries(DATA.validation).map(([s, v]) =>
+    `<li>Agreement with <code>${v.reference}</code> on the <strong>${s}</strong> sample (${v.n} pairs): tone ${pct(v.tone)} (κ ${v.tone_kappa.toFixed(2)}), ${v.opposite_sign} opposite-sign, voice ${pct(v.voice)}, frame ${pct(v.frame)}.</li>`).join("");
+}
+
+/* ---------- outlet map ---------- */
+function drawMap(t) {
+  const rows = DATA.slant[scope].filter((r) => DATA.coverage_position[r.outlet] != null);
+  const c = mk("cMap");
+  const pts = rows.map((r) => [r.slant, DATA.coverage_position[r.outlet], r]);
+  c.setOption({
+    ...base(t),
+    grid: { left: 72, right: 40, top: 20, bottom: 56 },
+    xAxis: { type: "value", name: "tone slant  ← favours left-bloc · favours right-bloc →", nameLocation: "middle", nameGap: 32,
+      nameTextStyle: { color: t.muted }, splitLine: { lineStyle: { color: t.grid } }, axisLabel: { color: t.muted, formatter: (v) => fmt(v, 1) } },
+    yAxis: { type: "value", name: "coverage position  ← left-bloc · right-bloc →", nameLocation: "middle", nameGap: 44,
+      nameRotate: 90, nameTextStyle: { color: t.muted },
+      splitLine: { lineStyle: { color: t.grid } }, axisLabel: { color: t.muted, formatter: (v) => fmt(v, 1) } },
+    tooltip: { ...base(t).tooltip, trigger: "item", formatter: (p) => {
+      const r = p.data[2]; if (!r) return "";
+      return `<b>${r.outlet}</b> (${DATA.outlet_lean[r.outlet]})<br>tone slant ${fmt(r.slant)} [${fmt(r.lo)}, ${fmt(r.hi)}]<br>coverage position ${fmt(DATA.coverage_position[r.outlet])}<br>${r.n_left} left-bloc / ${r.n_right} right-bloc labels`;
+    } },
+    series: [
+      { type: "custom", silent: true, data: rows.map((r) => [r.lo, r.hi, DATA.coverage_position[r.outlet]]),
+        renderItem: (params, api) => {
+          const a = api.coord([api.value(0), api.value(2)]), b = api.coord([api.value(1), api.value(2)]);
+          return { type: "line", shape: { x1: a[0], y1: a[1], x2: b[0], y2: b[1] }, style: { stroke: t.s1, lineWidth: 2, opacity: 0.4 } };
+        }, encode: { x: [0, 1], y: 2 }, z: 1 },
+      { type: "scatter", data: pts, symbolSize: 11, z: 3, itemStyle: { color: t.s1, borderColor: t.surface, borderWidth: 2 },
+        label: { show: true, position: "right", color: t.ink2, fontSize: 12, formatter: (p) => p.data[2].outlet },
+        labelLayout: { hideOverlap: true },
+        markLine: { silent: true, symbol: "none", label: { show: false }, lineStyle: { color: t.axis, type: "solid", width: 1 },
+          data: [{ xAxis: 0 }, { yAxis: 0 }] } },
+    ],
+  });
+}
+
+/* ---------- politician bars ---------- */
+function drawPol(t) {
+  const rows = DATA.politician_summary;
+  const neg = t.div[1], pos = t.div[7];
+  const c = mk("cPol");
+  c.setOption({
+    ...base(t),
+    grid: { left: 170, right: 40, top: 10, bottom: 30 },
+    xAxis: { type: "value", splitLine: { lineStyle: { color: t.grid } }, axisLabel: { color: t.muted, formatter: (v) => fmt(v, 1) } },
+    yAxis: { type: "category", data: rows.map((r) => polLabel(r.politician)), axisTick: { show: false },
+      axisLine: { lineStyle: { color: t.axis } }, axisLabel: { color: t.ink2 } },
+    tooltip: { ...base(t).tooltip, trigger: "item", formatter: (p) => {
+      const r = rows[p.dataIndex];
+      return `<b>${r.politician}</b><br>net tone ${fmt(r.net)}${r.lo == null ? "" : ` [${fmt(r.lo)}, ${fmt(r.hi)}]`}<br>${pct(r.pos)} positive · ${pct(r.neg)} negative · ${r.n} labels<br>${pct(r.scandal)} framed as scandal / justice`;
+    } },
+    series: [
+      { type: "bar", barWidth: "56%", data: rows.map((r) => ({ value: r.net, itemStyle: { color: r.net >= 0 ? pos : neg,
+          borderRadius: r.net >= 0 ? [0, 4, 4, 0] : [4, 0, 0, 4] } })) },
+      { type: "custom", silent: true, data: rows.map((r, i) => [r.lo, r.hi, i]).filter((d) => d[0] != null),
+        renderItem: (params, api) => {
+          const a = api.coord([api.value(0), api.value(2)]), b = api.coord([api.value(1), api.value(2)]);
+          return { type: "line", shape: { x1: a[0], y1: a[1], x2: b[0], y2: b[1] }, style: { stroke: t.ink2, lineWidth: 1.5 } };
+        }, encode: { x: [0, 1], y: 2 }, z: 4 },
+    ],
+  });
+}
+
+/* ---------- heatmaps ---------- */
+const CLIP = 0.5;
+function heat(id, table, cols, colLabels, t, onClick) {
+  const outlets = DATA.outlets, main = [], thin = [];
+  outlets.forEach((o, y) => {
+    const r = table.rows[o];
+    cols.forEach((col, x) => {
+      const rel = r.rel[x];
+      const meta = { o, col, label: colLabels[x], rel, lo: r.lo[x], hi: r.hi[x], n: r.n[x], net: r.net[x], base: table.baseline[x] };
+      if (rel == null) { thin.push({ value: [x, y, 0], ...meta, thinCell: true }); return; }
+      const v = Math.max(-CLIP, Math.min(CLIP, rel));
+      const notable = meta.lo > 0 || meta.hi < 0;
+      const dark = Math.abs(v) > 0.28;
+      const ink = isLight() ? (dark ? "#ffffff" : "#0b0b0b") : (dark ? "#0b0b0b" : "#f0efec");
+      main.push({ value: [x, y, v], ...meta, notable, label: { show: notable, color: ink, fontSize: 11, formatter: () => fmt(rel) } });
+    });
+  });
+  const c = mk(id);
+  c.setOption({
+    ...base(t),
+    grid: { left: 190, right: 12, top: 8, bottom: cols.length > 8 ? 90 : 30 },
+    xAxis: { type: "category", data: colLabels, axisTick: { show: false }, axisLine: { show: false },
+      axisLabel: { color: t.ink2, rotate: cols.length > 8 ? 35 : 0, interval: 0 } },
+    yAxis: { type: "category", data: outlets.map(outletLabel), inverse: true, axisTick: { show: false }, axisLine: { show: false }, axisLabel: { color: t.ink2 } },
+    visualMap: { show: false, seriesIndex: 0, min: -CLIP, max: CLIP, dimension: 2, inRange: { color: t.div } },
+    tooltip: { ...base(t).tooltip, trigger: "item", formatter: (p) => {
+      const d = p.data, head = `<b>${d.o}</b> × <b>${d.label}</b>`;
+      if (d.thinCell) return `${head}<br>${d.n} labels: too few to assess (min ${DATA.meta.min_cell})`;
+      return `${head}<br>net tone ${fmt(d.net)} vs press average ${fmt(d.base)}<br>relative <b>${fmt(d.rel)}</b> (90% ${fmt(d.lo)} to ${fmt(d.hi)})<br>${d.n} labels${onClick ? "<br><i>click for headlines</i>" : ""}`;
+    } },
+    series: [
+      { type: "heatmap", data: main, itemStyle: { borderColor: t.surface, borderWidth: 2, borderRadius: 3 },
+        emphasis: { itemStyle: { borderColor: t.ink, borderWidth: 1 } } },
+      { type: "heatmap", data: thin, itemStyle: { color: t.surface, borderColor: t.grid, borderWidth: 1, borderRadius: 3 },
+        label: { show: true, color: t.muted, formatter: () => "·" } },
+    ],
+  });
+  if (onClick) c.on("click", (p) => onClick(p.data));
+}
+function legend(t) {
+  document.querySelectorAll("[data-legend]").forEach((el) => {
+    el.innerHTML = `<span>less favourable (−${CLIP})</span><span class="bar" style="background:linear-gradient(90deg, ${t.div.join(",")})"></span>` +
+      `<span>more favourable (+${CLIP})</span><span style="margin-left:12px"><span class="sw"></span> too few labels</span>`;
+  });
+}
+function table(el, tab, colLabels) {
+  const head = "<tr><th>Outlet</th>" + colLabels.map((c) => `<th>${esc(c)}</th>`).join("") + "</tr>";
+  const body = DATA.outlets.map((o) => {
+    const r = tab.rows[o];
+    return `<tr><td>${esc(o)}</td>` + colLabels.map((_, i) => r.rel[i] == null
+      ? `<td class="thin">(${r.n[i]})</td>`
+      : `<td class="${r.lo[i] > 0 || r.hi[i] < 0 ? "sig" : ""}">${fmt(r.rel[i])}</td>`).join("") + "</tr>";
+  }).join("");
+  document.getElementById(el).innerHTML = `<table>${head}${body}</table>`;
+}
+function showExamples(d) {
+  const ex = DATA.examples[`${d.o}||${d.col}`] || [];
+  const el = document.getElementById("examples");
+  el.classList.remove("muted");
+  el.innerHTML = `<h3>${esc(d.o)} × ${esc(d.col)}: ${d.n} labels</h3>` + (ex.length ? ex.map((e) =>
+    `<div class="ex"><div class="t">${esc(e.title)}</div><div class="meta"><span class="chip">${e.tone}</span><span class="chip">${e.voice}</span><span class="chip">${FRAME_LABEL[e.frame] || e.frame}</span>${e.date} · evidence: “${esc(e.evidence)}”</div></div>`).join("")
+    : `<p class="muted">No labelled headlines.</p>`) + `<p class="muted">Editorial-voice labels are shown first.</p>`;
+}
+
+/* ---------- stacked bars ---------- */
+function stacked(id, cats, catLabels, matrix, t, valueFmt, nByRow) {
+  const c = mk(id);
+  c.setOption({
+    ...base(t),
+    color: t.cat,
+    legend: { top: 0, left: 0, icon: "roundRect", itemWidth: 12, itemHeight: 8, textStyle: { color: t.ink2, fontSize: 12 } },
+    grid: { left: 110, right: 16, top: 64, bottom: 28 },
+    xAxis: { type: "value", max: 1, splitLine: { lineStyle: { color: t.grid } }, axisLabel: { color: t.muted, formatter: (v) => Math.round(v * 100) + "%" } },
+    yAxis: { type: "category", data: DATA.outlets, inverse: true, axisTick: { show: false }, axisLine: { lineStyle: { color: t.axis } }, axisLabel: { color: t.ink2 } },
+    tooltip: { ...base(t).tooltip, trigger: "axis", axisPointer: { type: "shadow" },
+      formatter: (ps) => `<b>${ps[0].name}</b>${nByRow ? ` (${nByRow[ps[0].dataIndex]} labels)` : ""}<br>` + ps.map((p) => `${p.marker}${p.seriesName}: ${valueFmt(p.value)}`).join("<br>") },
+    series: cats.map((cat, j) => ({ name: catLabels[j], type: "bar", stack: "s", barWidth: "60%",
+      itemStyle: { borderColor: t.surface, borderWidth: 1 },
+      data: matrix.map((row) => (row[j] == null ? 0 : row[j])) })),
+  });
+}
+function drawVoice(t) {
+  const v = DATA.voice[voiceTone];
+  stacked("cVoice", VOICES, VOICES.map((x) => VOICE_LABEL[x]), v.share, t, (x) => pct(x), v.n);
+}
+function drawFrame(t) {
+  stacked("cFrame", DATA.frames.frames, DATA.frames.frames.map((f) => FRAME_LABEL[f]), DATA.frames.share, t, (x) => pct(x));
+}
+
+/* ---------- monthly ---------- */
+function drawMonth(t) {
+  const p = document.getElementById("selPol").value, o = document.getElementById("selOutlet").value, M = DATA.monthly;
+  const c = mk("cMonth");
+  c.setOption({
+    ...base(t),
+    legend: { top: 0, left: 0, icon: "roundRect", itemWidth: 14, itemHeight: 3, textStyle: { color: t.ink2 } },
+    grid: { left: 48, right: 20, top: 36, bottom: 32 },
+    xAxis: { type: "category", data: M.months, axisTick: { show: false }, axisLine: { lineStyle: { color: t.axis } }, axisLabel: { color: t.muted } },
+    yAxis: { type: "value", min: -1, max: 1, splitLine: { lineStyle: { color: t.grid } }, axisLabel: { color: t.muted, formatter: (v) => fmt(v, 1) } },
+    tooltip: { ...base(t).tooltip, trigger: "axis", valueFormatter: (v) => fmt(v) },
+    graphic: [...M.per_outlet[o][p], ...M.all[p]].every((v) => v == null)
+      ? [{ type: "text", left: "center", top: "middle", style: { text: "No month with enough labels for this selection", fill: t.muted, fontSize: 13 } }]
+      : [],
+    series: [
+      { name: `${o}: ${p}`, type: "line", data: M.per_outlet[o][p], connectNulls: false, lineStyle: { width: 2, color: t.s1 },
+        itemStyle: { color: t.s1 }, symbol: "circle", symbolSize: 8 },
+      { name: `Average of outlets: ${p}`, type: "line", data: M.all[p], connectNulls: false, lineStyle: { width: 2, color: t.ref },
+        itemStyle: { color: t.ref }, symbol: "circle", symbolSize: 8 },
+    ],
+  });
+}
+
+function renderTone() {
+  const t = theme();
+  drawMap(t);
+  heat("cBloc", DATA.bloc[scope], DATA.blocs, DATA.blocs, t, null);
+  heat("cCand", DATA.cand[scope], pols, pols.map(polLabel), t, showExamples);
+  table("tBloc", DATA.bloc[scope], DATA.blocs);
+  table("tCand", DATA.cand[scope], pols.map(polLabel));
+}
+function renderAll() {
+  const t = theme();
+  legend(t); renderTone(); drawPol(t); drawVoice(t); drawFrame(t); drawMonth(t);
+}
+function init() {
+  header();
+  const sp = document.getElementById("selPol"), so = document.getElementById("selOutlet");
+  sp.innerHTML = pols.map((p) => `<option>${esc(p)}</option>`).join("");
+  so.innerHTML = DATA.outlets.map((o) => `<option>${esc(o)}</option>`).join("");
+  if (DATA.outlets.includes("BFM TV")) so.value = "BFM TV";
+  sp.onchange = so.onchange = () => drawMonth(theme());
+  document.querySelectorAll("[data-scope]").forEach((b) => b.onclick = () => {
+    scope = b.dataset.scope;
+    document.querySelectorAll("[data-scope]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    renderTone();
+  });
+  document.querySelectorAll("[data-vt]").forEach((b) => b.onclick = () => {
+    voiceTone = b.dataset.vt;
+    document.querySelectorAll("[data-vt]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    drawVoice(theme());
+  });
+  document.getElementById("themeBtn").onclick = () => { document.documentElement.dataset.theme = isLight() ? "dark" : "light"; renderAll(); };
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderAll);
+  addEventListener("resize", () => Object.values(charts).forEach((c) => c.resize()));
+  renderAll();
+}
+init();
+</script>
+</body>
+</html>

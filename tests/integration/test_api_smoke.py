@@ -55,10 +55,12 @@ async def test_candidates_have_alias_counts(aclient):
     assert all(c["n_aliases"] >= 1 for c in items)
 
 
-async def test_le_pen_marked_ineligible(aclient):
+async def test_eligibility_flags(aclient):
+    # Macron cannot run; Le Pen is treated as eligible since 2026-11-14 (seeds/candidates.yaml).
     items = (await aclient.get("/candidates")).json()
     by_slug = {c["slug"]: c for c in items}
-    assert by_slug["le-pen-marine"]["eligible"] is False
+    assert by_slug["macron"]["eligible"] is False
+    assert by_slug["le-pen-marine"]["eligible"] is True
 
 
 # --- sources -------------------------------------------------------------
