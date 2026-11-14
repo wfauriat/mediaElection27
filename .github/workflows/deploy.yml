@@ -9,6 +9,7 @@ on:
       - "**.md"
       - "LICENSE"
       - ".gitignore"
+      - "analysis/**"   # offline media analysis: nothing in it is deployed
   workflow_dispatch:
 
 # One-time AWS setup before this workflow can run:
