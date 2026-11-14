@@ -1,0 +1,30 @@
+created_at,workflow,conclusion,commit,title,url
+2026-05-16T21:08:36Z,ci,success,0622665,Week 4: GitHub Actions ci + deploy workflows,https://github.com/wfauriat/mediaElection27/actions/runs/25972991645
+2026-05-16T21:12:41Z,ci,success,0622665,week4 aws cdk,https://github.com/wfauriat/mediaElection27/actions/runs/25973075056
+2026-05-16T21:18:32Z,ci,success,28ebe27,"Week 4: AWS deployment scaffolding — CDK stacks, Lambda handlers, CI/CD",https://github.com/wfauriat/mediaElection27/actions/runs/25973195060
+2026-05-16T21:18:32Z,deploy,failure,28ebe27,"Week 4: AWS deployment scaffolding — CDK stacks, Lambda handlers, CI/CD",https://github.com/wfauriat/mediaElection27/actions/runs/25973195049
+2026-05-16T22:21:27Z,deploy,failure,f98090a,fix: ASCII-only description on RdsSg,https://github.com/wfauriat/mediaElection27/actions/runs/25974485784
+2026-05-16T22:21:27Z,ci,success,f98090a,fix: ASCII-only description on RdsSg,https://github.com/wfauriat/mediaElection27/actions/runs/25974485783
+2026-05-16T22:41:53Z,deploy,success,b966031,fix(frontend): make `npm run build` work in CI,https://github.com/wfauriat/mediaElection27/actions/runs/25974901395
+2026-05-16T22:41:53Z,ci,success,b966031,fix(frontend): make `npm run build` work in CI,https://github.com/wfauriat/mediaElection27/actions/runs/25974901394
+2026-05-17T11:24:49Z,ci,success,64d8a8b,feat(ingest): add migrate/seed admin actions on loader Lambda,https://github.com/wfauriat/mediaElection27/actions/runs/25989483470
+2026-05-17T11:24:49Z,deploy,success,64d8a8b,feat(ingest): add migrate/seed admin actions on loader Lambda,https://github.com/wfauriat/mediaElection27/actions/runs/25989483451
+2026-05-17T12:46:33Z,deploy,success,a9042b0,fix(lambda): inject DB credentials as env vars instead of fetching fr…,https://github.com/wfauriat/mediaElection27/actions/runs/25991256990
+2026-05-17T12:46:33Z,ci,success,a9042b0,fix(lambda): inject DB credentials as env vars instead of fetching fr…,https://github.com/wfauriat/mediaElection27/actions/runs/25991256988
+2026-05-17T13:00:57Z,deploy,success,ebd679d,feat(ingest): add extract admin action on loader Lambda,https://github.com/wfauriat/mediaElection27/actions/runs/25991583962
+2026-05-17T13:00:57Z,ci,success,ebd679d,feat(ingest): add extract admin action on loader Lambda,https://github.com/wfauriat/mediaElection27/actions/runs/25991583954
+2026-05-17T14:10:57Z,deploy,success,fa0c5a5,feat(ingest): run keyword matcher inline after each loader batch,https://github.com/wfauriat/mediaElection27/actions/runs/25993161167
+2026-05-17T14:10:57Z,ci,success,fa0c5a5,feat(ingest): run keyword matcher inline after each loader batch,https://github.com/wfauriat/mediaElection27/actions/runs/25993161165
+2026-05-17T14:34:56Z,ci,success,d8d5bb0,docs: checkpoint for the 2026-05-17 AWS Week 4 deploy,https://github.com/wfauriat/mediaElection27/actions/runs/25993707949
+2026-05-17T15:49:12Z,ci,success,0a7a5a5,docs: rebuild specification for a from-scratch reimplementation,https://github.com/wfauriat/mediaElection27/actions/runs/25995448240
+2026-05-17T15:59:28Z,ci,success,11a704a,"updated README with full state of the app and AWS deployement, moved …",https://github.com/wfauriat/mediaElection27/actions/runs/25995690076
+2026-05-17T16:00:43Z,deploy,success,4fa7061,chore: fix README dev/ links and stop bundling docs into Lambda assets,https://github.com/wfauriat/mediaElection27/actions/runs/25995723197
+2026-05-17T16:00:43Z,ci,success,4fa7061,chore: fix README dev/ links and stop bundling docs into Lambda assets,https://github.com/wfauriat/mediaElection27/actions/runs/25995723194
+2026-05-17T18:57:46Z,deploy,success,11829f7,"feat(articles): tri-state candidate filter with ""no mention"" view",https://github.com/wfauriat/mediaElection27/actions/runs/25999786226
+2026-05-17T18:57:46Z,ci,success,11829f7,"feat(articles): tri-state candidate filter with ""no mention"" view",https://github.com/wfauriat/mediaElection27/actions/runs/25999786217
+2026-11-14T12:38:17Z,ci,success,45edcf6,feat(loader): export admin action to pull RDS tables out of the VPC,https://github.com/wfauriat/mediaElection27/actions/runs/43595806452
+2026-11-14T12:38:17Z,deploy,success,45edcf6,feat(loader): export admin action to pull RDS tables out of the VPC,https://github.com/wfauriat/mediaElection27/actions/runs/43595806191
+2026-11-14T13:23:11Z,ci,success,faef244,docs: log the 2026-11-14 AWS data archive and merge into local Postgres,https://github.com/wfauriat/mediaElection27/actions/runs/43599498637
+2026-11-14T13:23:34Z,ci,success,90ea8e1,docs: correct .aws.xml count in archive log,https://github.com/wfauriat/mediaElection27/actions/runs/43599529953
+2026-11-14T14:57:42Z,ci,success,5b364f0,ci: skip deploy for analysis-only changes,https://github.com/wfauriat/mediaElection27/actions/runs/43607566899
+2026-11-14T14:57:42Z,deploy,success,5b364f0,ci: skip deploy for analysis-only changes,https://github.com/wfauriat/mediaElection27/actions/runs/43607566817

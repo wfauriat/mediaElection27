@@ -172,6 +172,11 @@ All design and reference docs live under [`dev/`](./dev/):
 - [`dev/SPECIFICATION-REBUILD.md`](./dev/SPECIFICATION-REBUILD.md) —
   self-contained rebuild specification useful for a hand-implementation
   in a separate training repository
+- [`dev/aws-evidence/`](./dev/aws-evidence/) — record of the six months
+  of autonomous operation on AWS (CloudWatch metrics, S3 manifest verified
+  against the local archive, stacks, deploy history), collected 2026-11-14
+- [`analysis/PLAN.md`](./analysis/PLAN.md) — media orientation analysis
+  (coverage and tone per outlet), with reports in `analysis/reports/`
 - [`dev/cheatsheet_sql.md`](./dev/cheatsheet_sql.md) — Postgres queries
   used during eval and analysis
 - [`dev/schema_db.md`](./dev/schema_db.md) — schema notes / reasoning
