@@ -19,6 +19,9 @@ payload: `{"action": "migrate"}` runs `alembic upgrade head` against
 the in-VPC RDS, `{"action": "seed"}` runs `app.sources.seed.main()`,
 and `{"action": "extract", "reprocess_all": false}` runs the keyword
 matcher over articles (equivalent of local `make extract`).
+`{"action": "export_manifest"}` and `{"action": "export", "table": ...,
+"after_id": 0}` page tables out as gzipped COPY CSV inside the invoke
+response (see app.ingest.export and scripts/pull_aws_export.py).
 """
 
 from __future__ import annotations
@@ -172,6 +175,18 @@ def handler(event: dict[str, Any], context: object) -> dict[str, Any]:
     if action == "extract":
         reprocess_all = bool(event.get("reprocess_all", False))
         return _run_extract(reprocess_all)
+    if action == "export_manifest":
+        from app.ingest.export import export_manifest
+
+        return export_manifest()
+    if action == "export":
+        from app.ingest.export import DEFAULT_LIMIT, export_page
+
+        return export_page(
+            table=str(event.get("table", "")),
+            after_id=int(event.get("after_id", 0)),
+            limit=int(event.get("limit", DEFAULT_LIMIT)),
+        )
 
     results: list[dict[str, Any]] = []
     for record in event.get("Records", []):

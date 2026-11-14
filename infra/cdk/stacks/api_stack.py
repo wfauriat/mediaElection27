@@ -29,6 +29,7 @@ LAMBDA_EXCLUDES = [
     "dev",
     ".venv",
     "raw",
+    "exports",
     ".git",
     ".github",
     "*.egg-info",

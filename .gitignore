@@ -54,6 +54,7 @@ infra/cdk/.cdk.staging/
 logs/
 
 # DB dumps and snapshots
+exports/
 *.sql
 *.dump
 pgdata.tgz
