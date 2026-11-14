@@ -55,6 +55,7 @@ logs/
 
 # DB dumps and snapshots
 exports/
+analysis/data/
 *.sql
 *.dump
 pgdata.tgz

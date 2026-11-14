@@ -1,4 +1,4 @@
-.PHONY: help venv install db-up db-down db-logs psql migrate seed ingest-once extract extract-all api dev test lint typecheck format clean frontend-install frontend-dev frontend-build frontend-typecheck
+.PHONY: help venv install db-up db-down db-logs psql migrate seed ingest-once extract extract-all api dev test lint typecheck format clean frontend-install frontend-dev frontend-build frontend-typecheck analysis-coverage
 
 PY := .venv/bin/python
 PIP := .venv/bin/pip
@@ -80,3 +80,6 @@ typecheck:  ## Type check with mypy --strict
 clean:  ## Remove caches and build artifacts
 	rm -rf .pytest_cache .mypy_cache .ruff_cache build dist *.egg-info
 	find . -type d -name __pycache__ -exec rm -rf {} +
+
+analysis-coverage:  ## Snapshot the DB and render the layer-1 coverage report (analysis/reports/)
+	/opt/venvs/pyDS/bin/python -m analysis.layer1_coverage --snapshot

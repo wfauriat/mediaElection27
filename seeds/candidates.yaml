@@ -41,10 +41,10 @@ candidates:
     display_name: Marine Le Pen
     party: RN
     lean: hard-right
-    eligible: false
+    eligible: true
     notes: >
-      Cour de cassation upheld 5-year ineligibility on 2025-10-15.
-      Listed for tracking but flagged ineligible in the dashboard.
+      Flagged ineligible when the pipeline was set up (May 2026).
+      Treated as an eligible candidate from 2026-11-14 (project decision).
     aliases:
       - { alias: "Marine Le Pen", match_kind: exact }
       - { alias: "Le Pen", match_kind: wholeword, requires_context: "Marine" }

@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Media Coverage Map</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
+  --series-1: #2a78d6; --series-ref: #898781; --thin: #e7e6e1;
+  --div: #184f95,#2a78d6,#6da7ec,#b7d3f6,#f0efec,#f6c4aa,#e9895c,#c2501c,#8a3510;
+  --seq: #e8f0fb,#9ec5f4,#3987e5,#1c5cab,#0d366b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+    --series-1: #3987e5; --series-ref: #898781; --thin: #262624;
+    --div: #86b6ef,#3987e5,#256abf,#184f95,#383835,#7a3417,#b44a1d,#d95926,#f19a70;
+    --seq: #1f2a3a,#184f95,#256abf,#3987e5,#86b6ef;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+  --series-1: #3987e5; --series-ref: #898781; --thin: #262624;
+  --div: #86b6ef,#3987e5,#256abf,#184f95,#383835,#7a3417,#b44a1d,#d95926,#f19a70;
+  --seq: #1f2a3a,#184f95,#256abf,#3987e5,#86b6ef;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink);
+  font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1120px; margin: 0 auto; padding: 24px 16px 64px; }
+header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+h2 { font-size: 19px; margin: 0 0 4px; }
+.sub { color: var(--ink-2); margin: 0; }
+.muted { color: var(--muted); font-size: 13px; }
+button.theme { border: 1px solid var(--border); background: var(--surface); color: var(--ink-2);
+  border-radius: 8px; padding: 6px 10px; cursor: pointer; font: inherit; font-size: 13px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 20px 0; }
+.tile { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+.tile .v { font-size: 26px; font-weight: 600; }
+.tile .l { color: var(--ink-2); font-size: 13px; }
+section.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  padding: 20px; margin: 18px 0; }
+.card p.lede { color: var(--ink-2); margin: 2px 0 12px; max-width: 78ch; }
+.findings ul { padding-left: 20px; } .findings li { margin: 6px 0; }
+.chart { width: 100%; }
+.scroll { overflow-x: auto; }
+.controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin: 8px 0 4px; }
+.controls label { font-size: 13px; color: var(--ink-2); display: flex; gap: 6px; align-items: center; }
+select { font: inherit; font-size: 14px; padding: 4px 8px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--page); color: var(--ink); }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: transparent; color: var(--ink-2); padding: 4px 10px; font: inherit; font-size: 13px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--page); color: var(--ink); font-weight: 600; }
+.legend-div { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-2); margin: 6px 0 2px; flex-wrap: wrap; }
+.legend-div .bar { width: 220px; height: 10px; border-radius: 5px; }
+.legend-div .sw { width: 14px; height: 10px; border-radius: 3px; background: var(--thin); display: inline-block; border: 1px solid var(--border); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
+details { margin-top: 10px; } summary { cursor: pointer; color: var(--ink-2); font-size: 13px; }
+table { border-collapse: collapse; font-size: 13px; margin-top: 8px; font-variant-numeric: tabular-nums; }
+th, td { padding: 4px 8px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+td.sig { font-weight: 700; } td.thin { color: var(--muted); }
+code { font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div>
+    <h1>Who gets covered, by whom</h1>
+    <p class="sub">mediaElection27 · layer 1 of the media orientation analysis: coverage (attention), not tone.</p>
+    <p class="muted" id="meta"></p>
+  </div>
+  <button class="theme" id="themeBtn" type="button">Toggle theme</button>
+</header>
+
+<div class="tiles" id="tiles"></div>
+
+<section class="card findings" id="findingsCard">
+  <h2>Key findings</h2>
+  <!--__FINDINGS__-->
+</section>
+
+<section class="card">
+  <h2>Where each outlet's attention sits</h2>
+  <p class="lede">Average lean of the candidates an outlet covers (hard-left −3 … hard-right +3), relative to the average outlet. Left of zero: attention tilted toward left-bloc candidates. This measures <strong>attention, not sympathy</strong>: an outlet investigating a camp also covers it a lot. Whiskers: 90% bootstrap interval.</p>
+  <div class="chart" id="cPosition" style="height:460px"></div>
+</section>
+
+<section class="card">
+  <h2>Coverage by political bloc</h2>
+  <p class="lede">Lift = the outlet's share of candidate coverage going to a bloc ÷ the average outlet's share. Values are shown only where the 90% interval excludes 1.0; hover any cell for details.</p>
+  <div class="legend-div" data-legend></div>
+  <div class="scroll"><div class="chart" id="cBloc" style="height:520px; min-width:640px"></div></div>
+  <details><summary>Show as table</summary><div class="scroll" id="tBloc"></div></details>
+</section>
+
+<section class="card">
+  <h2>Coverage by politician</h2>
+  <p class="lede">Same lift, per politician. † = tracked but not a candidate (Macron cannot run). Switch to headline-only mentions to remove the effect of summary length (Le Parisien and L'Express have no summaries).</p>
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Mention scope">
+      <button type="button" data-scope="lift" aria-pressed="true">Headline + summary</button>
+      <button type="button" data-scope="lift_title" aria-pressed="false">Headline only</button>
+    </div>
+  </div>
+  <div class="legend-div" data-legend></div>
+  <div class="scroll"><div class="chart" id="cCand" style="height:560px; min-width:900px"></div></div>
+  <details><summary>Show as table</summary><div class="scroll" id="tCand"></div></details>
+</section>
+
+<section class="card">
+  <h2>Share of voice over time</h2>
+  <p class="lede">Weekly share of an outlet's politician coverage going to one politician, against the average of all outlets. Weeks where the outlet has fewer than 5 mentions are left blank.</p>
+  <div class="controls">
+    <label>Politician <select id="selCand"></select></label>
+    <label>Outlet <select id="selOutlet"></select></label>
+  </div>
+  <div class="chart" id="cWeekly" style="height:380px"></div>
+</section>
+
+<section class="card">
+  <div class="two">
+    <div>
+      <h2>Prominence</h2>
+      <p class="lede">Share of mentions where the name is in the headline rather than only in the summary. Outlets without summaries are omitted.</p>
+      <div class="chart" id="cProm" style="height:420px"></div>
+    </div>
+    <div>
+      <h2>Concentration</h2>
+      <p class="lede">Effective number of candidates an outlet covers (1 ÷ Σ share² over the <span data-n-elig></span> candidates). Lower = attention concentrated on a few.</p>
+      <div class="chart" id="cConc" style="height:420px"></div>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <div class="two">
+    <div>
+      <h2>Who appears together</h2>
+      <p class="lede">Articles naming both politicians (all outlets). Hover for observed ÷ expected under independence.</p>
+      <div class="chart" id="cCo" style="height:560px"></div>
+    </div>
+    <div>
+      <h2>Which outlets cover the race alike</h2>
+      <p class="lede">Similarity of the politician mix (1 − Jensen–Shannon distance), outlets ordered by clustering.</p>
+      <div class="legend-div" id="simLegend"></div>
+      <div class="scroll"><div class="chart" id="cSim" style="height:560px; min-width:520px"></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Method and caveats</h2>
+  <ul>
+    <li>Unit: a distinct (article, politician) pair from the keyword extractor (exact or whole-word aliases, title + summary). Articles published from 2026-05-15. France Info's two feeds are merged.</li>
+    <li>Baselines weight every outlet equally, so BFM TV (about half of all articles) does not define "normal".</li>
+    <li>Intervals: 400 bootstrap resamples of articles within each outlet, 90%. They hold the baseline fixed and ignore week-to-week dependence, so they are somewhat optimistic. Cells expecting fewer than 5 pairs are greyed out as too thin to assess.</li>
+    <li>Feeds are samples of what each outlet publishes (section feeds vs front-page feeds), and keyword matching misses indirect references ("le leader insoumis").</li>
+    <li>Full plan: <code>analysis/PLAN.md</code>. Next layers: tone toward each politician, then slant estimation controlling for the news of the week.</li>
+  </ul>
+</section>
+</main>
+
+<script>
+const DATA = /*__DATA__*/null;
+const fmt = (v, d = 2) => (v == null ? "–" : v.toFixed(d));
+const pct = (v, d = 0) => (v == null ? "–" : (100 * v).toFixed(d) + "%");
+const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const cands = DATA.candidates;
+const candLabel = (c) => c.name + (c.eligible ? "" : " †");
+const outletLabel = (o) => `${o} · ${DATA.outlet_lean[o]}`;
+const charts = {};
+let scope = "lift";
+
+function theme() {
+  return {
+    ink: css("--ink"), ink2: css("--ink-2"), muted: css("--muted"), grid: css("--grid"),
+    axis: css("--axis"), surface: css("--surface"), s1: css("--series-1"), ref: css("--series-ref"),
+    thin: css("--thin"), div: css("--div").split(",").map((s) => s.trim()),
+    seq: css("--seq").split(",").map((s) => s.trim()),
+  };
+}
+function base(t) {
+  return {
+    textStyle: { fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif', color: t.ink2 },
+    animation: false,
+    tooltip: { backgroundColor: t.surface, borderColor: t.grid, textStyle: { color: t.ink, fontSize: 13 },
+      extraCssText: "box-shadow:0 4px 16px rgba(0,0,0,.12); border-radius:8px;" },
+  };
+}
+function mk(id) {
+  if (charts[id]) charts[id].dispose();
+  charts[id] = echarts.init(document.getElementById(id), null, { renderer: "svg" });
+  return charts[id];
+}
+const isLight = () => document.documentElement.dataset.theme
+  ? document.documentElement.dataset.theme === "light"
+  : !matchMedia("(prefers-color-scheme: dark)").matches;
+
+/* ---------- header ---------- */
+function header() {
+  const m = DATA.meta;
+  const nElig = cands.filter((c) => c.eligible).length;
+  document.querySelectorAll("[data-n-elig]").forEach((el) => (el.textContent = nElig));
+  document.getElementById("meta").textContent =
+    `Snapshot ${m.snapshot_at} · articles published ${m.period[0]} → ${m.period[1]}`;
+  const tiles = [
+    [m.n_articles.toLocaleString("en"), "articles in scope"],
+    [m.n_with_candidate.toLocaleString("en"), "mention a tracked politician"],
+    [DATA.outlets.length, "outlets"],
+    [`${nElig} + ${cands.length - nElig}`, "candidates + non-candidate"],
+  ];
+  document.getElementById("tiles").innerHTML = tiles
+    .map(([v, l]) => `<div class="tile"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+  if (!document.querySelector("#findingsCard p, #findingsCard ul"))
+    document.getElementById("findingsCard").style.display = "none";
+}
+
+/* ---------- position (dot + whisker) ---------- */
+function drawPosition(t) {
+  const rows = [...DATA.position].sort((a, b) => a.position - b.position);
+  const c = mk("cPosition");
+  c.setOption({
+    ...base(t),
+    grid: { left: 190, right: 30, top: 10, bottom: 40 },
+    xAxis: { type: "value", min: -1.2, max: 1.2, interval: 0.4, splitLine: { lineStyle: { color: t.grid } },
+      axisLine: { show: false }, axisLabel: { color: t.muted, formatter: (v) => (v > 0 ? "+" : "") + v.toFixed(1) },
+      name: "← left-bloc candidates      right-bloc candidates →", nameLocation: "middle", nameGap: 26,
+      nameTextStyle: { color: t.muted } },
+    yAxis: { type: "category", data: rows.map((r) => outletLabel(r.outlet)), axisTick: { show: false },
+      axisLine: { lineStyle: { color: t.axis } }, axisLabel: { color: t.ink2 } },
+    tooltip: { ...base(t).tooltip, trigger: "item", formatter: (p) => {
+      const r = rows[p.dataIndex];
+      return `<b>${r.outlet}</b> (${r.lean})<br>position ${r.position >= 0 ? "+" : ""}${fmt(r.position)}<br>90% interval [${fmt(r.lo)}, ${fmt(r.hi)}]`;
+    } },
+    series: [
+      { type: "custom", silent: true, data: rows.map((r, i) => [i, r.lo, r.hi]),
+        renderItem: (params, api) => {
+          const a = api.coord([api.value(1), api.value(0)]), b = api.coord([api.value(2), api.value(0)]);
+          return { type: "line", shape: { x1: a[0], y1: a[1], x2: b[0], y2: b[1] },
+            style: { stroke: t.s1, lineWidth: 2, opacity: 0.45 } };
+        }, encode: { x: [1, 2], y: 0 }, z: 1 },
+      { type: "scatter", symbolSize: 11, data: rows.map((r, i) => [r.position, i]),
+        itemStyle: { color: t.s1, borderColor: t.surface, borderWidth: 2 }, z: 3,
+        markLine: { silent: true, symbol: "none", label: { show: false },
+          lineStyle: { color: t.axis, type: "solid", width: 1 }, data: [{ xAxis: 0 }] } },
+    ],
+  });
+}
+
+/* ---------- lift heatmaps ---------- */
+const CLIP = 1.6; // log2 scale: ±1.6 ≈ ×0.33 … ×3
+function heatData(rows, outlets, ncol, t) {
+  const main = [], thin = [];
+  outlets.forEach((o, y) => {
+    const r = rows[o];
+    for (let x = 0; x < ncol; x++) {
+      const lift = r.lift[x], lo = r.lo[x], hi = r.hi[x], exp = r.expected[x];
+      const meta = { o, x, lift, lo, hi, exp, share: r.share[x], n: r.n_pairs };
+      if (exp < 5) { thin.push({ value: [x, y, 0], ...meta, thinCell: true }); continue; }
+      const v = Math.max(-CLIP, Math.min(CLIP, Math.log2(Math.max(lift, 1e-3))));
+      const notable = lo > 1 || hi < 1;
+      const dark = Math.abs(v) > 0.9;
+      const labelInk = isLight() ? (dark ? "#ffffff" : "#0b0b0b") : (dark ? "#0b0b0b" : "#f0efec");
+      main.push({ value: [x, y, v], ...meta, notable,
+        label: { show: notable, color: labelInk, fontSize: 11, formatter: () => lift.toFixed(2) } });
+    }
+  });
+  return { main, thin };
+}
+function drawHeat(id, rows, colLabels, baseline, t, colName) {
+  const outlets = DATA.outlets;
+  const { main, thin } = heatData(rows, outlets, colLabels.length, t);
+  const c = mk(id);
+  c.setOption({
+    ...base(t),
+    grid: { left: 190, right: 12, top: 8, bottom: colLabels.length > 8 ? 90 : 30 },
+    xAxis: { type: "category", data: colLabels, position: "bottom", axisTick: { show: false },
+      axisLine: { show: false }, axisLabel: { color: t.ink2, rotate: colLabels.length > 8 ? 35 : 0, interval: 0 } },
+    yAxis: { type: "category", data: outlets.map(outletLabel), inverse: true, axisTick: { show: false },
+      axisLine: { show: false }, axisLabel: { color: t.ink2 } },
+    visualMap: { show: false, seriesIndex: 0, min: -CLIP, max: CLIP, dimension: 2, inRange: { color: t.div } },
+    tooltip: { ...base(t).tooltip, trigger: "item", formatter: (p) => {
+      const d = p.data;
+      const head = `<b>${d.o}</b> × <b>${colLabels[d.x]}</b>`;
+      if (d.thinCell) return `${head}<br>too thin to assess (${fmt(d.exp, 1)} pairs expected at baseline)`;
+      return `${head}<br>lift <b>${fmt(d.lift)}</b> (90% ${fmt(d.lo)}–${fmt(d.hi)})` +
+        `<br>${pct(d.share, 1)} of this outlet's ${colName} coverage vs ${pct(baseline[d.x], 1)} on average` +
+        `<br>${d.notable ? "interval excludes 1.0" : "not distinguishable from average"}`;
+    } },
+    series: [
+      { type: "heatmap", data: main, itemStyle: { borderColor: t.surface, borderWidth: 2, borderRadius: 3 },
+        emphasis: { itemStyle: { borderColor: t.ink, borderWidth: 1 } } },
+      { type: "heatmap", data: thin, itemStyle: { color: t.thin, borderColor: t.surface, borderWidth: 2, borderRadius: 3 },
+        label: { show: false } },
+    ],
+  });
+}
+function divLegend(t) {
+  const grad = `linear-gradient(90deg, ${t.div.join(",")})`;
+  document.querySelectorAll("[data-legend]").forEach((el) => {
+    el.innerHTML = `<span>×0.33 under-covered</span><span class="bar" style="background:${grad}"></span>` +
+      `<span>×3 over-covered</span><span style="margin-left:12px"><span class="sw"></span> too thin to assess</span>`;
+  });
+}
+function liftTable(el, rows, colLabels) {
+  const head = "<tr><th>Outlet</th>" + colLabels.map((c) => `<th>${c}</th>`).join("") + "</tr>";
+  const body = DATA.outlets.map((o) => {
+    const r = rows[o];
+    return `<tr><td>${o}</td>` + colLabels.map((_, i) => {
+      if (r.expected[i] < 5) return `<td class="thin">(${fmt(r.lift[i])})</td>`;
+      const sig = r.lo[i] > 1 || r.hi[i] < 1;
+      return `<td class="${sig ? "sig" : ""}">${fmt(r.lift[i])}</td>`;
+    }).join("") + "</tr>";
+  }).join("");
+  document.getElementById(el).innerHTML = `<table>${head}${body}</table>`;
+}
+
+/* ---------- weekly ---------- */
+function drawWeekly(t) {
+  const ci = +document.getElementById("selCand").value;
+  const o = document.getElementById("selOutlet").value;
+  const W = DATA.weekly;
+  const c = mk("cWeekly");
+  const name = candLabel(cands[ci]);
+  c.setOption({
+    ...base(t),
+    grid: { left: 48, right: 20, top: 36, bottom: 40 },
+    legend: { top: 0, left: 0, icon: "roundRect", itemWidth: 14, itemHeight: 3, textStyle: { color: t.ink2 } },
+    xAxis: { type: "category", data: W.weeks, boundaryGap: false, axisTick: { show: false },
+      axisLine: { lineStyle: { color: t.axis } }, axisLabel: { color: t.muted, formatter: (v) => v.slice(5) } },
+    yAxis: { type: "value", axisLabel: { color: t.muted, formatter: (v) => Math.round(v * 100) + "%" },
+      splitLine: { lineStyle: { color: t.grid } } },
+    tooltip: { ...base(t).tooltip, trigger: "axis", axisPointer: { type: "line", lineStyle: { color: t.axis } },
+      valueFormatter: (v) => pct(v, 1) },
+    series: [
+      { name: `${o}: ${name}`, type: "line", data: W.per_outlet[o].map((r) => r[ci]), connectNulls: false,
+        lineStyle: { width: 2, color: t.s1 }, itemStyle: { color: t.s1 }, symbol: "circle", symbolSize: 8, showSymbol: false },
+      { name: `All outlets (equal weight): ${name}`, type: "line", data: W.all.map((r) => r[ci]),
+        lineStyle: { width: 2, color: t.ref }, itemStyle: { color: t.ref }, symbol: "circle", symbolSize: 8, showSymbol: false },
+    ],
+  });
+}
+
+/* ---------- bars ---------- */
+function hbar(id, rows, valueFmt, t, tooltipFn) {
+  const c = mk(id);
+  c.setOption({
+    ...base(t),
+    grid: { left: 168, right: 24, top: 6, bottom: 28 },
+    xAxis: { type: "value", splitLine: { lineStyle: { color: t.grid } }, axisLabel: { color: t.muted, formatter: valueFmt } },
+    yAxis: { type: "category", data: rows.map((r) => r.label), inverse: true, axisTick: { show: false },
+      axisLine: { lineStyle: { color: t.axis } }, axisLabel: { color: t.ink2 } },
+    tooltip: { ...base(t).tooltip, trigger: "item", formatter: (p) => tooltipFn(rows[p.dataIndex]) },
+    series: [{ type: "bar", data: rows.map((r) => r.value), barWidth: "56%",
+      itemStyle: { color: t.s1, borderRadius: [0, 4, 4, 0] } }],
+  });
+}
+function drawBars(t) {
+  const prom = DATA.prominence.filter((p) => p.comparable).sort((a, b) => b.in_title - a.in_title)
+    .map((p) => ({ label: p.outlet, value: p.in_title }));
+  hbar("cProm", prom, (v) => Math.round(v * 100) + "%", t, (r) => `<b>${r.label}</b><br>${pct(r.value)} of mentions in the headline`);
+  const conc = [...DATA.concentration].sort((a, b) => b.effective_n - a.effective_n)
+    .map((c) => ({ label: c.outlet, value: c.effective_n, top3: c.top3_share }));
+  hbar("cConc", conc, (v) => v.toFixed(0), t, (r) => `<b>${r.label}</b><br>effective nb of candidates ${fmt(r.value, 1)}<br>top-3 candidates: ${pct(r.top3)} of coverage`);
+  const surname = (n) => n.split(" ").slice(1).join(" ");
+  const co = DATA.comentions.map((r) => ({ label: `${surname(r.a)} + ${surname(r.b)}`, value: r.n, r }));
+  hbar("cCo", co, (v) => v, t, (x) => `<b>${x.r.a} + ${x.r.b}</b><br>${x.r.n} articles<br>${fmt(x.r.lift, 1)}× what independence would predict`);
+}
+
+/* ---------- similarity ---------- */
+function drawSim(t) {
+  const S = DATA.similarity, k = S.order.length, data = [];
+  for (let i = 0; i < k; i++) for (let j = 0; j < k; j++) if (i !== j) data.push([j, i, 1 - S.matrix[i][j]]);
+  const vals = data.map((d) => d[2]);
+  const c = mk("cSim");
+  c.setOption({
+    ...base(t),
+    grid: { left: 120, right: 10, top: 6, bottom: 110 },
+    xAxis: { type: "category", data: S.order, axisTick: { show: false }, axisLine: { show: false },
+      axisLabel: { color: t.ink2, rotate: 45, interval: 0 } },
+    yAxis: { type: "category", data: S.order, inverse: true, axisTick: { show: false }, axisLine: { show: false },
+      axisLabel: { color: t.ink2 } },
+    visualMap: { show: false, min: Math.min(...vals), max: Math.max(...vals), inRange: { color: t.seq } },
+    tooltip: { ...base(t).tooltip, trigger: "item",
+      formatter: (p) => `<b>${S.order[p.data[1]]}</b> vs <b>${S.order[p.data[0]]}</b><br>similarity ${fmt(p.data[2])}` },
+    series: [{ type: "heatmap", data, itemStyle: { borderColor: t.surface, borderWidth: 2, borderRadius: 3 } }],
+  });
+  document.getElementById("simLegend").innerHTML =
+    `<span>least similar (${fmt(Math.min(...vals))})</span><span class="bar" style="background:linear-gradient(90deg, ${t.seq.join(",")})"></span><span>most similar (${fmt(Math.max(...vals))})</span>`;
+}
+
+/* ---------- wiring ---------- */
+function renderAll() {
+  const t = theme();
+  drawPosition(t);
+  drawHeat("cBloc", DATA.blocs.rows, DATA.blocs.blocs, DATA.blocs.baseline, t, "candidate");
+  drawHeat("cCand", DATA[scope].rows, cands.map(candLabel), DATA[scope].baseline, t, "politician");
+  divLegend(t);
+  drawWeekly(t);
+  drawBars(t);
+  drawSim(t);
+}
+function init() {
+  header();
+  const sc = document.getElementById("selCand"), so = document.getElementById("selOutlet");
+  sc.innerHTML = cands.map((c, i) => `<option value="${i}">${candLabel(c)}</option>`).join("");
+  so.innerHTML = DATA.outlets.map((o) => `<option>${o}</option>`).join("");
+  so.value = "BFM TV";
+  sc.onchange = so.onchange = () => drawWeekly(theme());
+  document.querySelectorAll("[data-scope]").forEach((b) => b.onclick = () => {
+    scope = b.dataset.scope;
+    document.querySelectorAll("[data-scope]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    drawHeat("cCand", DATA[scope].rows, cands.map(candLabel), DATA[scope].baseline, theme(), "politician");
+    liftTable("tCand", DATA[scope].rows, cands.map(candLabel));
+  });
+  liftTable("tBloc", DATA.blocs.rows, DATA.blocs.blocs);
+  liftTable("tCand", DATA.lift.rows, cands.map(candLabel));
+  document.getElementById("themeBtn").onclick = () => {
+    document.documentElement.dataset.theme = isLight() ? "dark" : "light";
+    renderAll();
+  };
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderAll);
+  addEventListener("resize", () => Object.values(charts).forEach((c) => c.resize()));
+  renderAll();
+}
+init();
+</script>
+</body>
+</html>
