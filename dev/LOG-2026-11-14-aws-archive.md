@@ -42,8 +42,9 @@ Why: AWS free plan (account 669880793306) expires **2026-11-16 21:32 UTC**
    - 929 files filled days the local cron was off → `raw/` now covers
      every day 2026-05-15 … 2026-11-14 (184 days, 430 MB)
    - 191 byte-identical to local, skipped
-   - 1,625 differing snapshots (or today's, which local cron keeps
-     overwriting) saved alongside as `{slug}.aws.xml`
+   - 1,612 saved alongside as `{slug}.aws.xml`: 1,610 snapshots that
+     differed from local, plus 2 of today's files pinned because the
+     local cron keeps overwriting today's folder
 6. **Cleanup**: dropped `media27_aws`; removed the downloaded S3 copy
    after checking every file is byte-identical to something in `raw/`.
 
